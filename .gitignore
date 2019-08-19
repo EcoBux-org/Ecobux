@@ -87,3 +87,8 @@ typings/
 # DynamoDB Local files
 .dynamodb/
 
+# Ignore build files
+build/*
+
+# Ignore vim swap files
+*.swp
