@@ -1,6 +1,4 @@
 pragma solidity 0.5.10;
-// Use the experimental encoder for the nested arrays of token creation
-pragma experimental ABIEncoderV2;
 // Import OpenZeppelin's ERC-721 Implementation
 import "openzeppelin-solidity/contracts/token/ERC721/ERC721.sol";
 // Import OpenZeppelin's SafeMath Implementation
@@ -18,7 +16,7 @@ contract PanamaJungle is ERC721, Ownable, Pausable, RelayRecipient {
     // This struct will be used to represent one allotment of land
     struct Allotment {
         // Array of lat/lng points to represent the boundaries of a point.
-        uint256[2][] geoMap;
+        uint24[2][5] geoMap;
         // Array of microaddons for each allotment
         uint16[] addons;
     }
@@ -39,7 +37,7 @@ contract PanamaJungle is ERC721, Ownable, Pausable, RelayRecipient {
     event Birth(
         address owner,
         uint256 allotmentId,
-        uint256[2][] geoMap,
+        uint24[2][5] geoMap,
         uint16[] addons
     );
 
@@ -85,9 +83,9 @@ contract PanamaJungle is ERC721, Ownable, Pausable, RelayRecipient {
     * @param _allotments an array of arrays of points for creating the allotment bounds
         * Each lat lng point has six decimal points, about 4 inches of precision.
         * (precision is not accuracy, note https://gis.stackexchange.com/a/8674 )
-    * @return The new allotment's ID
+    * @return bool success if the allotment generation was successful 
     */
-    function createAllotment(uint256[2][][2001] calldata _allotments) external onlyOwner returns (bool success) {
+    function createAllotment(uint24[2][5][2701] calldata _allotments) external onlyOwner returns (bool success) {
         uint16[] memory addons;
         for (uint i = 0; i < _allotments.length; i++) {
             Allotment memory newAllotment = Allotment({
@@ -104,27 +102,6 @@ contract PanamaJungle is ERC721, Ownable, Pausable, RelayRecipient {
             );
         }
         return true;
-    }
-
-    /** @dev Function to create test allotments
-    * @return The new allotment's ID
-    */
-    function createTestAllotment() external onlyOwner returns (uint256) {
-        uint16[] memory addons;
-        uint256[2][] memory geoPoints;
-        Allotment memory newAllotment = Allotment({
-            geoMap: geoPoints,
-            addons: addons
-        });
-        uint256 newAllotmentId = allotments.push(newAllotment).sub(1);
-        super._mint(address(this), newAllotmentId);
-        emit Birth(
-            address(this),
-            newAllotmentId,
-            newAllotment.geoMap,
-            newAllotment.addons
-        );
-        return newAllotmentId;
     }
 
     /** @dev Function to buy one or more allotments
@@ -225,7 +202,7 @@ contract PanamaJungle is ERC721, Ownable, Pausable, RelayRecipient {
     * @param id ID of the allotment who's details will be retrieved
     * @return Array id and geopoints of an allotment with all addons.
     */
-    function allotmentDetails(uint256 id) external view returns (uint256, uint256[2][] memory, uint16[] memory) {
+    function allotmentDetails(uint256 id) external view returns (uint256, uint24[2][5] memory, uint16[] memory) {
         return (id, allotments[id].geoMap, allotments[id].addons);
     }
 
