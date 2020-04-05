@@ -8,6 +8,9 @@ let networks = {
   "ropsten-fork": {
     relayHubAddr: "0x1349584869A1C7b8dc8AE0e93D8c15F5BB3B4B87"
   },
+  "ropsten": {
+    relayHubAddr: "0x1349584869A1C7b8dc8AE0e93D8c15F5BB3B4B87"
+  },
   "development": {
     relayHubAddr: "0x9C57C0F1965D225951FE1B2618C92Eefd687654F"
   }
@@ -16,6 +19,7 @@ let networks = {
 module.exports = async (deployer, network, accounts) => {
     deployer.deploy(PanamaFuture, EcoBucks.address);
 
+    console.log(network);
     let hubAddr = networks[network].relayHubAddr
     await deployer.deploy(PanamaJungle, EcoBucks.address)
     let paj = await PanamaJungle.deployed();
