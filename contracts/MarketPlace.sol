@@ -11,7 +11,7 @@ import "./utils/Erc721Verifiable.sol";
 
 contract MarketPlace is Ownable, Pausable {
     using SafeMath for uint256;
-    ERC20 public ecoBucks;
+    ERC20 public ecoBux;
     uint256 public projectFee;
     uint256 public charityFee;
 
@@ -21,10 +21,10 @@ contract MarketPlace is Ownable, Pausable {
         keccak256("verifyFingerprint(uint256,bytes)")
     );
 
-    constructor(address _ecoBucksAddress) public {
-        ecoBucks = ERC20(_ecoBucksAddress);
-        uint256 projectFee = 10; // Base fee of every executed order, in ecoBucks
-        uint256 charityFee = 10; // Base fee of every executed order, in ecoBucks
+    constructor(address _ecoBuxAddress) public {
+        ecoBux = ERC20(_ecoBuxAddress);
+        projectFee = 10; // Base fee of every executed order, in EcoBux
+        charityFee = 10; // Base fee of every executed order, in EcoBux
     }
 
     // EVENTS
@@ -86,7 +86,7 @@ contract MarketPlace is Ownable, Pausable {
         require(ecoPrice > 0, "Price should be greater than 0");
         // require(
         //     _availableECO(msg.sender) > publicationFeeInWei,
-        //     "Owner does not have enough EcoBucks to pay publication fee"
+        //     "Owner does not have enough EcoBux to pay publication fee"
         // )
         require(
             subToken.getApproved(allotmentId) == address(this) ||
@@ -194,8 +194,8 @@ contract MarketPlace is Ownable, Pausable {
         // Transfer project fee if exists
         if (projectFee > 0) {
             require(
-                _takeEco(msg.sender, address(ecoBucks), projectFee),
-                "Transfering the project fee to the ecoBucks owner failed"
+                _takeEco(msg.sender, address(ecoBux), projectFee),
+                "Transfering the project fee to the EcoBux owner failed"
             );
         }
 
@@ -234,17 +234,17 @@ contract MarketPlace is Ownable, Pausable {
         );
     }
 
-    /** @dev Function to verifie user has enough ecobucks to spend
+    /** @dev Function to verifie user has enough EcoBux to spend
     */
     function _availableECO(address user) internal view returns (uint256) {
-        return ecoBucks.allowance(user, address(this));
+        return ecoBux.allowance(user, address(this));
     }
 
-    /** @dev Function to take ecobucks from user and transfer to contract
+    /** @dev Function to take EcoBux from user and transfer to contract
      */
     function _takeEco(address _from, address _to, uint256 _amount) internal returns (bool) {
         require(_availableECO(_from) > _amount, "Not enough ECOB");
-        require(ecoBucks.transferFrom(_from, _to, _amount), "Transfer of EcoBucks failed");
+        require(ecoBux.transferFrom(_from, _to, _amount), "Transfer of EcoBux failed");
         emit EcoTransfer(_from, _amount);
         return true;
     }

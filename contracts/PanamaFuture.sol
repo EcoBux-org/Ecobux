@@ -14,7 +14,7 @@ contract PanamaFuture is ERC20, ERC20Mintable, Ownable, Pausable {
     using SafeMath for uint256;
 
     uint256 public currentPrice;
-    ERC20 public ecoBucksAddress;
+    ERC20 public ecoBuxAddress;
 
     // Event emitted whenever Future are transferred
     event Transferred(
@@ -28,12 +28,12 @@ contract PanamaFuture is ERC20, ERC20Mintable, Ownable, Pausable {
         uint256 amount
     );
 
-    // Start contract with new EcoBucks address
-    // constructor(address _ecoBucksAddress) public ERC20() {
-    //     ERC20 ecoBucksAddress = ERC20(_ecoBucksAddress);
-    //     ERC20 futureAddress= ERC20(address(this));
-    //     uint256 currentPrice = 25; // Default to 1 ECOB per FUTURE. Changed by setCurrentPrice()
-    // }
+    // Start contract with new EcoBux address
+    constructor(address _ecoBuxAddress) public ERC20() {
+         ERC20 ecoBuxAddress = ERC20(_ecoBuxAddress);
+         ERC20 futureAddress= ERC20(address(this));
+         uint256 currentPrice = 25; // Default to 1 ECOB per FUTURE. Changed by setCurrentPrice()
+    }
 
     // Fallback function
     // solhint-disable-next-line no-empty-blocks
@@ -72,26 +72,26 @@ contract PanamaFuture is ERC20, ERC20Mintable, Ownable, Pausable {
         currentPrice = _currentPrice;
     }
 
-    /** @dev Function to update ecoBucksAddress
-      * @dev Throws if _ecoBucksAddress is not a contract address
+    /** @dev Function to update ecoBuxAddress
+      * @dev Throws if _ecoBuxAddress is not a contract address
       */
-    function setEcoBucksAddress(address _ecoBucksAddress) public onlyOwner {
-        require(isContract(_ecoBucksAddress)); // ecoBucksAddress is common denominator contract for all subcontracts
-        ecoBucksAddress = ERC20(_ecoBucksAddress);
+    function setEcoBuxAddress(address _ecoBuxAddress) public onlyOwner {
+        require(isContract(_ecoBuxAddress)); // ecoBuxAddress is common denominator contract for all subcontracts
+        ecoBuxAddress = ERC20(_ecoBuxAddress);
     }
 
-    /** @dev Function to take ecobucks from user and transfers it to contract
+    /** @dev Function to take EcoBux from user and transfers it to contract
      */
     function takeEco(address _from, uint256 _amount) internal {
-        require(availableECO(_from) > _amount); // Requre enough ecoBucks available
-        ecoBucksAddress.transferFrom(_from, address(this), _amount);
+        require(availableECO(_from) > _amount); // Requre enough EcoBux available
+        ecoBuxAddress.transferFrom(_from, address(this), _amount);
         emit EcoTransfer(_from, _amount);
     }
 
-    /** @dev Function to verify user has enough ecobucks to spend
+    /** @dev Function to verify user has enough EcoBux to spend
     */
     function availableECO(address user) internal view returns (uint256) {
-        return ecoBucksAddress.allowance(user, address(this));
+        return ecoBuxAddress.allowance(user, address(this));
     }
 
     /** @dev Function determine if input is contract

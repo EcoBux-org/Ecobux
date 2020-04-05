@@ -5,12 +5,12 @@ import "openzeppelin-solidity/contracts/token/ERC20/ERC20Mintable.sol";
 import "./utils/Ownable.sol";
 
 
-contract EcoBucks is ERC20, ERC20Mintable, Ownable {
+contract EcoBux is ERC20, ERC20Mintable, Ownable {
     event Mint(address indexed to, uint256 amount);
 
     ERC20 public ecoAddress = ERC20(address(this));
 
-    string public constant name = "EcoBucks";
+    string public constant name = "EcoBux";
     string public constant symbol = "ECOB";
     uint8 public constant decimals = 2;
 
@@ -25,7 +25,7 @@ contract EcoBucks is ERC20, ERC20Mintable, Ownable {
     }
 
     /**
-    * @dev Function to mint tokens
+    * @dev Function to mint tokens to users
     * @param _to The address that will receive the minted tokens.
     * @param _amount The amount of tokens to mint.
     * @return A boolean that indicates if the operation was successful.
