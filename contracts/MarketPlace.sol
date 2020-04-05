@@ -1,4 +1,4 @@
-pragma solidity 0.5.10;
+pragma solidity 0.6.4;
 
 // Import OpenZeppelin's SafeMath Implementation
 import "openzeppelin-solidity/contracts/math/SafeMath.sol";
@@ -89,8 +89,8 @@ contract MarketPlace is Ownable, Pausable {
         //     "Owner does not have enough EcoBux to pay publication fee"
         // )
         require(
-            subToken.getApproved(allotmentId) == address(this) ||
-            subToken.isApprovedForAll(allotmentOwner, address(this)),
+            subToken.getApproved(allotmentId) == this.address ||
+            subToken.isApprovedForAll(allotmentOwner, this.address),
             "The contract is not authorized to manage the asset"
         );
 
@@ -194,7 +194,7 @@ contract MarketPlace is Ownable, Pausable {
         // Transfer project fee if exists
         if (projectFee > 0) {
             require(
-                _takeEco(msg.sender, address(ecoBux), projectFee),
+                _takeEco(msg.sender, ecoBux.address, projectFee),
                 "Transfering the project fee to the EcoBux owner failed"
             );
         }
@@ -237,7 +237,7 @@ contract MarketPlace is Ownable, Pausable {
     /** @dev Function to verifie user has enough EcoBux to spend
     */
     function _availableECO(address user) internal view returns (uint256) {
-        return ecoBux.allowance(user, address(this));
+        return ecoBux.allowance(user, this.address);
     }
 
     /** @dev Function to take EcoBux from user and transfer to contract
