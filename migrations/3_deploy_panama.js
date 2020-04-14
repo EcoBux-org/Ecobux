@@ -1,4 +1,4 @@
-const EcoBucks = artifacts.require("EcoBucks");
+const EcoBux = artifacts.require("EcoBux");
 const RelayHub = artifacts.require( "RelayHub");
 const PanamaJungle = artifacts.require("PanamaJungle");
 const PanamaFuture = artifacts.require("PanamaFuture");
@@ -17,11 +17,11 @@ let networks = {
 }
 
 module.exports = async (deployer, network, accounts) => {
-    deployer.deploy(PanamaFuture, EcoBucks.address);
+    deployer.deploy(PanamaFuture, EcoBux.address);
 
     console.log(network);
     let hubAddr = networks[network].relayHubAddr
-    await deployer.deploy(PanamaJungle, EcoBucks.address)
+    await deployer.deploy(PanamaJungle, EcoBux.address)
     let paj = await PanamaJungle.deployed();
 
     let hub = await RelayHub.at(hubAddr).catch(e => {

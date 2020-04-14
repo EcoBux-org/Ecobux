@@ -1,9 +1,9 @@
-const EcoBucks = artifacts.require("EcoBucks");
+const EcoBux = artifacts.require("EcoBux");
 const MarketPlace = artifacts.require("MarketPlace");
 
 module.exports = function(deployer, network, accounts) {
-    deployer.deploy(EcoBucks).then(function() {
-        console.log(EcoBucks.address)
-        return deployer.deploy(MarketPlace, EcoBucks.address);
+    deployer.deploy(EcoBux).then(function() {
+        console.log(EcoBux.address)
+        return deployer.deploy(MarketPlace, EcoBux.address);
     });
 };
