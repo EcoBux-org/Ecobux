@@ -23,3 +23,5 @@ script:
   - truffle migrate --reset --network development
   - truffle test
   - kill -9 $(lsof -t -i:8545)
+  - npx truffle run coverage
+  - cat coverage/lcov.info | coveralls
