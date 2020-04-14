@@ -2,7 +2,7 @@
  
 set -e
  
-sleep 15 # to make sure tabookey-gasless is up and running before compiling
+sleep 45 # to make sure tabookey-gasless is up and running before compiling
 rm -rf build
 truffle compile
 truffle migrate --reset --network development
