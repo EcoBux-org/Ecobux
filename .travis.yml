@@ -1,12 +1,11 @@
 language: node_js
 node_js:
-  - "10.15.3"
+  - 10
  
 matrix:
   include:
     - os: linux
       before_install:
-      - sudo add-apt-repository ppa:ethereum/ethereum -y
       - sudo apt-get update
       - sudo apt-get install build-essential -y
       - sudo apt-get install gcc g++ libssl-dev libudev-dev pkg-config
@@ -17,7 +16,7 @@ install:
   - ganache-cli --gasLimit 8000000 2> /dev/null 1> /dev/null & 
  
 script:
-  - sleep 15 # to make sure ganache-cli is up and running before compiling
+  - sleep 5 # to make sure ganache-cli is up and running before compiling
   - set -e
   - rm -rf build
   - truffle compile
