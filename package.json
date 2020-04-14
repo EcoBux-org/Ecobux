@@ -11,7 +11,7 @@
     "bignumber.js": "^9.0.0",
     "openzeppelin-solidity": "^2.5.0",
     "number-to-bn": "^1.7.0",
-    "tabookey-gasless": "^0.3.3",
+    "tabookey-gasless": "^0.4.5",
     "truffle-assertions": "^0.9.2"
   },
   "devDependencies": {},
@@ -27,7 +27,7 @@
     "Ecobux"
   ],
   "author": "Lucas Oberwager",
-  "license": "GPLv3",
+  "license": "GPL-3.0-or-later",
   "bugs": {
     "url": "https://github.com/Watt3r/Ecobux/issues"
   },
