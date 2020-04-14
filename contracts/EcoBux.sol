@@ -16,7 +16,7 @@ contract EcoBux is ERC20, Ownable {
     }
 
     modifier hasMintPermission() {
-        require(msg.sender == owner);
+        require(msg.sender == owner, "Must be owner to mint");
         _;
     }
 

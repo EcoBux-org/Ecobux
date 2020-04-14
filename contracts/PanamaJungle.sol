@@ -51,7 +51,7 @@ contract PanamaJungle is ERC721, Ownable, Pausable, GSNRecipient {
     );*/
 
     // Event emitted when a new mircoAddon is created
-    event NewAddon(uint256 addonId, uint256 price, bool purchasable);
+    event NewAddon(uint256 addonId, uint16 price, bool purchasable);
 
     // TEST EVENT: TODO: DELETE
     event log(string msg, uint256 logID);
@@ -230,6 +230,22 @@ contract PanamaJungle is ERC721, Ownable, Pausable, GSNRecipient {
         )
     {
         return (id, allotments[id].geoMap, allotments[id].addons);
+    }
+
+    /** @dev Function to retrieve a specific allotment's details.
+     * @param id ID of the allotment who's details will be retrieved
+     * @return Array id and geopoints of an allotment with all addons.
+     */
+    function microDetails(uint256 id)
+        external
+        view
+        returns (
+            uint256,
+            uint16,
+            bool
+        )
+    {
+        return (id, microAddons[id].price, microAddons[id].purchasable);
     }
 
     // Relay Functions to allow users to avoid needing a wallet

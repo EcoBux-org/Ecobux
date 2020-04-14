@@ -18,11 +18,13 @@
     "@openzeppelin/contracts-ethereum-package": "^2.5.0",
     "@openzeppelin/gsn-helpers": "^0.2.3",
     "@openzeppelin/upgrades": "^2.8.0",
-    "ganache-cli": "^6.9.1"
+    "ganache-cli": "^6.9.1",
+    "solidity-coverage": "^0.7.4"
   },
   "scripts": {
-    "test": "solhint contracts/*.sol",
-    "gas": "ganache-cli"
+    "lint": "solhint contracts/*.sol",
+    "gas": "ganache-cli",
+    "test": "truffle test"
   },
   "repository": {
     "type": "git",

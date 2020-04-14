@@ -8,22 +8,27 @@ const truffleAssert = require('truffle-assertions');
 let contractInstance
 let ecoBuxInstance
 
-contract('PanamaJungle/EcoBux', (accounts) => {
+contract('PanamaJungle', (accounts) => {
     beforeEach(async () => {
         ecoBuxInstance = await EcoBux.deployed()
         contractInstance = await PanamaJungle.deployed(ecoBuxInstance.address)
     })
 
-    it('should create and then get details of a purchasable microaddon', async () => {
+    it('should create a microaddon and get info', async () => {
         const price = 10
         const purchasable = 1
 
-        const addonId = await contractInstance.createMicro(price, purchasable, {from: accounts[0]})
+        const addon = await contractInstance.createMicro(price, purchasable, {from: accounts[0]})
 
-        assert.notEqual(price, addonId, 'The allotment geoPoints are not the same')
+        truffleAssert.eventEmitted(addon, 'NewAddon', (ev) => {
+          return ev.addonId == 0 && ev.price == price && ev.purchasable == true;
+        }, 'Contract should create the correct microAddon');
+
+        var details = await contractInstance.microDetails(0);
+        assert.equal(0 == details[0] && details[1] == price && details[2] == true, true, 'The microaddon was not added correctly')
     })
 
-    it('should create and then buy a purchasable microaddon', async () => {
+    it('should buy a purchasable microaddon', async () => {
         const price = 10
         const purchasable = 1
 
