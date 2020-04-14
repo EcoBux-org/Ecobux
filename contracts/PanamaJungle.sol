@@ -11,7 +11,6 @@ import "./utils/Erc20.sol";
 
 
 contract PanamaJungle is ERC721, Ownable, Pausable, GSNRecipient {
-
     using SafeMath for uint256;
 
     // This struct will be used to represent one allotment of land
@@ -43,10 +42,7 @@ contract PanamaJungle is ERC721, Ownable, Pausable, GSNRecipient {
     );
 
     // Event that will be emitted whenever ownership is transferred of a token
-    event Transferred(
-        address owner,
-        uint256 allotmentId
-    );
+    event Transferred(address owner, uint256 allotmentId);
 
     // Event emitted when ECOB are transferred from user to contract
     /*event EcoTransfer(
@@ -55,24 +51,17 @@ contract PanamaJungle is ERC721, Ownable, Pausable, GSNRecipient {
     );*/
 
     // Event emitted when a new mircoAddon is created
-    event NewAddon(
-        uint256 addonId,
-        uint256 price,
-        bool purchasable
-    );
+    event NewAddon(uint256 addonId, uint256 price, bool purchasable);
 
     // TEST EVENT: TODO: DELETE
-    event log(
-        string msg,
-        uint logID
-    );
+    event log(string msg, uint256 logID);
 
     // Defince non fungible token address
     ERC721 public nftAddress = ERC721(address(this));
     // Default to 25 ECOB per allotment. Changed by setCurrentPrice()
-    uint256 public currentPrice = 25; 
+    uint256 public currentPrice = 25;
     // Nonce for RNG. Can be predictable, however it only determines which allotment to buy
-    uint private randomNonce; 
+    uint256 private randomNonce;
     // Declare ecobux address
     ERC20 public ecoBuxAddress;
 
@@ -82,15 +71,20 @@ contract PanamaJungle is ERC721, Ownable, Pausable, GSNRecipient {
     }
 
     /** @dev Function to group create allotments
-    * @param _allotments an array of arrays of points for creating the allotment bounds
-        * Each lat lng point has six decimal points, about 4 inches of precision.
-        * (precision is not accuracy, note https://gis.stackexchange.com/a/8674 )
-    * @return success bool if the allotment generation was successful 
-    **/ 
-    function createAllotment(uint24[2][5][10] calldata _allotments) external onlyOwner returns (bool success) {
+     * @param _allotments an array of arrays of points for creating the allotment bounds
+     * Each lat lng point has six decimal points, about 4 inches of precision.
+     * (precision is not accuracy, note https://gis.stackexchange.com/a/8674 )
+     * @return success bool if the allotment generation was successful
+     **/
+
+    function createAllotment(uint24[2][5][10] calldata _allotments)
+        external
+        onlyOwner
+        returns (bool success)
+    {
         uint16[] memory addons;
         // For each allotment in initial array
-        for (uint i = 0; i < _allotments.length; i++) {
+        for (uint256 i = 0; i < _allotments.length; i++) {
             // Create new struct containing geopoints and an empty array of addons
             Allotment memory newAllotment = Allotment({
                 geoMap: _allotments[i],
@@ -98,75 +92,86 @@ contract PanamaJungle is ERC721, Ownable, Pausable, GSNRecipient {
             });
             // Set the new allotment's id
             allotments.push(newAllotment);
-            uint256 newAllotmentId = allotments.length -1;
+            uint256 newAllotmentId = allotments.length - 1;
             // Mint the allotment
             super._mint(address(this), newAllotmentId);
             // Declare the allotment "birthed"
-            emit Transfer(
-                address(0),
-                address(this),
-                newAllotmentId
-            );
+            emit Transfer(address(0), address(this), newAllotmentId);
         }
         return true;
     }
 
     /** @dev Function to buy one or more allotments
-    * @param _tokensDesired number of tokens desired
-    */
-    function buyAllotments(uint256 _tokensDesired, address _to) external whenNotPaused {
+     * @param _tokensDesired number of tokens desired
+     */
+    function buyAllotments(uint256 _tokensDesired, address _to)
+        external
+        whenNotPaused
+    {
         require(_msgSender() != address(0) && _msgSender() != address(this)); // Only be used by users to buy allotments
-        require(availableECO(_msgSender()) >= currentPrice * _tokensDesired, "Not enough available Ecobux!");
+        require(
+            availableECO(_msgSender()) >= currentPrice * _tokensDesired,
+            "Not enough available Ecobux!"
+        );
 
         // Take money from account before so no chance of re entry attacks
         takeEco(_msgSender(), currentPrice * _tokensDesired);
-        
-        // Array of contract tokens for random selection 
+
+        // Array of contract tokens for random selection
         uint256[] memory contractTokens = this.ownedAllotments(address(this));
 
-        require(contractTokens.length > _tokensDesired, "Not enough available tokens!"); // Need enough tokens available
+        require(
+            contractTokens.length > _tokensDesired,
+            "Not enough available tokens!"
+        ); // Need enough tokens available
 
-        for (uint i = 0; i < _tokensDesired; i++) {
-            uint tokenId = contractTokens[random()%contractTokens.length]; // Select random token from contract tokens
+        for (uint256 i = 0; i < _tokensDesired; i++) {
+            uint256 tokenId = contractTokens[random() % contractTokens.length]; // Select random token from contract tokens
 
             nftAddress.safeTransferFrom(address(this), _to, tokenId); // Transfer token from contract to user
 
-            emit Transferred(
-                _to,
-                tokenId
-            );
+            emit Transferred(_to, tokenId);
         }
-
     }
 
     /** @dev Function to create a new type of microaddon
-    * @param _price uint of the cost (in ecobux) of the new microaddon
-    * @param _purchasable bool determining if the new microaddon can be purchased by users
-    * @return The new addon's ID
-    */
-    function createMicro(uint16 _price, bool _purchasable) external onlyOwner returns (uint256) {
+     * @param _price uint of the cost (in ecobux) of the new microaddon
+     * @param _purchasable bool determining if the new microaddon can be purchased by users
+     * @return The new addon's ID
+     */
+    function createMicro(uint16 _price, bool _purchasable)
+        external
+        onlyOwner
+        returns (uint256)
+    {
         MicroAddon memory newAddon = MicroAddon({
             price: _price,
             purchasable: _purchasable
         });
         microAddons.push(newAddon);
-        uint256 newAddonId = microAddons.length -1;
-        emit NewAddon(
-            newAddonId,
-            _price,
-            _purchasable
-        );
+        uint256 newAddonId = microAddons.length - 1;
+        emit NewAddon(newAddonId, _price, _purchasable);
         return newAddonId;
     }
 
     /** @dev Function to add vitrual microtransactions to an allotment
-    * @param tokenID id of the token to add the microtransactions to
-    * @param addonID Desired name of the addon mapped to an id
-    * @return All microtransactions on tokenID
-    */
-    function purchaseMicro(uint256 tokenID, uint16 addonID) external whenNotPaused returns (uint16[] memory) {
-        require(microAddons[addonID].purchasable, "Selected microaddon does not exist or is not purchasable.");
-        require(availableECO(_msgSender()) > microAddons[addonID].price, "Not enough available EcoBux!");
+     * @param tokenID id of the token to add the microtransactions to
+     * @param addonID Desired name of the addon mapped to an id
+     * @return All microtransactions on tokenID
+     */
+    function purchaseMicro(uint256 tokenID, uint16 addonID)
+        external
+        whenNotPaused
+        returns (uint16[] memory)
+    {
+        require(
+            microAddons[addonID].purchasable,
+            "Selected microaddon does not exist or is not purchasable."
+        );
+        require(
+            availableECO(_msgSender()) > microAddons[addonID].price,
+            "Not enough available EcoBux!"
+        );
         require(_exists(tokenID), "Selected Token does not exist");
 
         // Take money from account
@@ -178,16 +183,20 @@ contract PanamaJungle is ERC721, Ownable, Pausable, GSNRecipient {
     }
 
     /** @dev Function to withdraw all ETH from contract to balance
-    */
+     */
     function withdrawAll() external onlyOwner {
-        uint bal = address(this).balance;
+        uint256 bal = address(this).balance;
         payable(address(owner)).transfer(bal);
     }
 
     /** @dev Function to get a list of owned allotment's IDs
-    * @return A uint array which contains IDs of all owned allotments
-    */
-    function ownedAllotments(address addy) external view returns(uint256[] memory) {
+     * @return A uint array which contains IDs of all owned allotments
+     */
+    function ownedAllotments(address addy)
+        external
+        view
+        returns (uint256[] memory)
+    {
         uint256 allotmentCount = balanceOf(addy);
         if (allotmentCount == 0) {
             return new uint256[](0);
@@ -206,16 +215,24 @@ contract PanamaJungle is ERC721, Ownable, Pausable, GSNRecipient {
             return result;
         }
     }
-    
+
     /** @dev Function to retrieve a specific allotment's details.
-    * @param id ID of the allotment who's details will be retrieved
-    * @return Array id and geopoints of an allotment with all addons.
-    */
-    function allotmentDetails(uint256 id) external view returns (uint256, uint24[2][5] memory, uint16[] memory) {
+     * @param id ID of the allotment who's details will be retrieved
+     * @return Array id and geopoints of an allotment with all addons.
+     */
+    function allotmentDetails(uint256 id)
+        external
+        view
+        returns (
+            uint256,
+            uint24[2][5] memory,
+            uint16[] memory
+        )
+    {
         return (id, allotments[id].geoMap, allotments[id].addons);
     }
 
-    // Relay Functions to allow users to avoid needing a wallet 
+    // Relay Functions to allow users to avoid needing a wallet
     // GSN func
     // TODO: LIMIT USE OF THIS; ANY USER CAN DRAIN
     function acceptRelayedCall(
@@ -231,15 +248,18 @@ contract PanamaJungle is ERC721, Ownable, Pausable, GSNRecipient {
     ) external view override returns (uint256, bytes memory) {
         return _approveRelayedCall();
     }
-  
+
     // Relay Requires this func even if unused
     // GSN Func
     // TODO: Add stuff here
-    function _preRelayedCall(bytes memory context) internal override returns (bytes32) {
-    }
+    function _preRelayedCall(bytes memory context) internal override returns (bytes32) {}
 
-    function _postRelayedCall(bytes memory context, bool, uint256 actualCharge, bytes32) internal override {
-    }
+    function _postRelayedCall(
+        bytes memory context,
+        bool,
+        uint256 actualCharge,
+        bytes32
+    ) internal override {}
 
     // Needed by Openzeppelin GSN
     function _msgSender() internal view override(Context, GSNRecipient) returns (address payable) {
@@ -251,45 +271,50 @@ contract PanamaJungle is ERC721, Ownable, Pausable, GSNRecipient {
     }
 
     /** @dev Function to update _currentPrice
-    * @dev Throws if _currentPrice is zero
-    */
+     * @dev Throws if _currentPrice is zero
+     */
     function setCurrentPrice(uint256 _currentPrice) public onlyOwner {
         require(_currentPrice > 0); // This shouldn't ever throw, but sanitization of inputs is never a bad thing
         currentPrice = _currentPrice;
     }
 
     /** @dev Function to update _ecoBuxAddress
-      * @dev Throws if _ecoBuxAddress is not a contract address
-      */
+     * @dev Throws if _ecoBuxAddress is not a contract address
+     */
     function setEcoBuxAddress(address _ecoBuxAddress) public onlyOwner {
         ecoBuxAddress = ERC20(_ecoBuxAddress);
     }
 
     /** @dev Function to verify user has enough ecobux to spend
-      * @dev Internal function only
-    */
+     * @dev Internal function only
+     */
     function availableECO(address user) internal view returns (uint256) {
         return ecoBuxAddress.allowance(user, address(this));
     }
 
     /** @dev Function to take ecobux from user and transfer to contract
-      * @dev Internal function only
+     * @dev Internal function only
      */
     function takeEco(address _from, uint256 _amount) internal {
         require(availableECO(_from) > _amount); // Requre enough EcoBux available
-        require(ecoBuxAddress.transferFrom(_from, address(this), _amount), "Transfer of EcoBux failed");
+        require(
+            ecoBuxAddress.transferFrom(_from, address(this), _amount),
+            "Transfer of EcoBux failed"
+        );
         //emit EcoTransfer(_from, _amount);
     }
 
     /** @dev Function to create radnom numbers
-      * @dev True random numbers are not possible in eth, these numbers are feasibly predictable
-      * @dev Because the cost of predicting these numbers greatly outweighs the reward,
-      * @dev psuedoRandomness is okay here
-      * @dev Internal function only
-      * @return psuedoRandom nnumbers
-      */
-    function random() internal returns(uint) {
-        uint randomNum = uint(keccak256(abi.encodePacked(now, _msgSender(), randomNonce))) % 100;
+     * @dev True random numbers are not possible in eth, these numbers are feasibly predictable
+     * @dev Because the cost of predicting these numbers greatly outweighs the reward,
+     * @dev psuedoRandomness is okay here
+     * @dev Internal function only
+     * @return psuedoRandom nnumbers
+     */
+    function random() internal returns (uint256) {
+        uint256 randomNum = uint256(
+            keccak256(abi.encodePacked(now, _msgSender(), randomNonce))
+        ) % 100;
         randomNonce++;
         return randomNum;
     }

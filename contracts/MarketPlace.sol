@@ -52,10 +52,7 @@ contract MarketPlace is Ownable, Pausable {
         address subTokenAddress
     );
 
-    event EcoTransfer(
-        address owner,
-        uint256 amount
-    );
+    event EcoTransfer(address owner, uint256 amount);
 
     struct Order {
         // Order ID
@@ -68,10 +65,10 @@ contract MarketPlace is Ownable, Pausable {
         address seller;
     }
 
-    mapping (address => mapping(uint256 => Order)) public orderByAssetId;
+    mapping(address => mapping(uint256 => Order)) public orderByAssetId;
 
     /** @dev Create order
-    */
+     */
     function createOrder(
         address subTokenAddress,
         uint256 allotmentId,
@@ -90,7 +87,7 @@ contract MarketPlace is Ownable, Pausable {
         // )
         require(
             subToken.getApproved(allotmentId) == address(this) ||
-            subToken.isApprovedForAll(allotmentOwner, address(this)),
+                subToken.isApprovedForAll(allotmentOwner, address(this)),
             "The contract is not authorized to manage the asset"
         );
 
@@ -121,17 +118,15 @@ contract MarketPlace is Ownable, Pausable {
     }
 
     /** @dev Cancel existing order
-    */
-    function cancelOrder(
-        address subTokenAddress,
-        uint256 allotmentId
-    ) external {
+     */
+    function cancelOrder(address subTokenAddress, uint256 allotmentId)
+        external
+    {
         Order memory order = orderByAssetId[subTokenAddress][allotmentId];
 
         require(order.id != 0, "Asset not published");
         require(
-            order.seller == msg.sender ||
-            msg.sender == owner,
+            order.seller == msg.sender || msg.sender == owner,
             "Unauthorized user"
         );
 
@@ -151,7 +146,7 @@ contract MarketPlace is Ownable, Pausable {
     }
 
     /** @dev Execute sale of order
-    */
+     */
     function executeOrder(
         address subTokenAddress,
         uint256 assetId,
@@ -206,11 +201,7 @@ contract MarketPlace is Ownable, Pausable {
         );
 
         // Transfer asset owner
-        nftRegistry.safeTransferFrom(
-            seller,
-            msg.sender,
-            assetId
-        );
+        nftRegistry.safeTransferFrom(seller, msg.sender, assetId);
 
         emit OrderSuccessful(
             orderId,
@@ -235,23 +226,30 @@ contract MarketPlace is Ownable, Pausable {
     }
 
     /** @dev Function to verifie user has enough EcoBux to spend
-    */
+     */
     function _availableECO(address user) internal view returns (uint256) {
         return ecoBux.allowance(user, address(this));
     }
 
     /** @dev Function to take EcoBux from user and transfer to contract
      */
-    function _takeEco(address _from, address _to, uint256 _amount) internal returns (bool) {
+    function _takeEco(
+        address _from,
+        address _to,
+        uint256 _amount
+    ) internal returns (bool) {
         require(_availableECO(_from) > _amount, "Not enough ECOB");
-        require(ecoBux.transferFrom(_from, _to, _amount), "Transfer of EcoBux failed");
+        require(
+            ecoBux.transferFrom(_from, _to, _amount),
+            "Transfer of EcoBux failed"
+        );
         emit EcoTransfer(_from, _amount);
         return true;
     }
 
     /** @dev Function determine if input is contract
-      * @return bool if input is a contract
-      */
+     * @return bool if input is a contract
+     */
     function isContract(address _addr) internal view returns (bool) {
         uint32 size;
         assembly {
