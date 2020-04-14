@@ -16,7 +16,8 @@
   },
   "devDependencies": {},
   "scripts": {
-    "test": "solhint contracts/*.sol"
+    "test": "solhint contracts/*.sol",
+    "gas": "cd node_modules/tabookey-gasless && npm run gsn-dock-relay-ganache"
   },
   "repository": {
     "type": "git",
