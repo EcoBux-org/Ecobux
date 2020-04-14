@@ -12,10 +12,12 @@ matrix:
       - sudo apt-get install gcc g++ libssl-dev libudev-dev pkg-config
  
 install:
-  - bash ./bin/travis-install.sh
+  - npm install
+  - npm install -g truffle ganache-cli
+  - ganache-cli --gasLimit 8000000 2> /dev/null 1> /dev/null & 
  
 script:
-  - sleep 15 # to make sure tabookey-gasless is up and running before compiling
+  - sleep 15 # to make sure ganache-cli is up and running before compiling
   - set -e
   - rm -rf build
   - truffle compile
