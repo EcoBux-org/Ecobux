@@ -1,8 +1,6 @@
-pragma solidity 0.6.4;
+pragma solidity ^0.6.0;
 // Import OpenZeppelin's ERC-20 Implementation
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-// Import OpenZeppelin's ERC-20 Mintable Implementation
-import "@openzeppelin/contracts/token/ERC20/ERC20Mintable.sol";
 // Import OpenZeppelin's SafeMath Implementation
 import "@openzeppelin/contracts/math/SafeMath.sol";
 // Now using new openzeppelin's gsn
@@ -11,7 +9,7 @@ import "./utils/Ownable.sol";
 import "./utils/Pausable.sol";
 
 
-contract PanamaFuture is ERC20, ERC20Mintable, Ownable, Pausable {
+contract PanamaFuture is ERC20, Ownable, Pausable {
 
     using SafeMath for uint256;
 
@@ -31,10 +29,10 @@ contract PanamaFuture is ERC20, ERC20Mintable, Ownable, Pausable {
     );
 
     // Start contract with new EcoBux address
-    constructor(address _ecoBuxAddress) public ERC20() {
-        ERC20 ecoBuxAddress = ERC20(_ecoBuxAddress);
+    constructor(address _ecoBuxAddress) public ERC20("PanamaFuture", "PAF") {
         ERC20 futureAddress= ERC20(address(this));
-        uint256 currentPrice = 25; // Default to 1 ECOB per FUTURE. Changed by setCurrentPrice()
+        ecoBuxAddress = ERC20(_ecoBuxAddress);
+        currentPrice = 25; // Default to 1 ECOB per FUTURE. Changed by setCurrentPrice()
     }
 
     /** @dev Fuction to interface with creating and dispensing Future
@@ -44,7 +42,7 @@ contract PanamaFuture is ERC20, ERC20Mintable, Ownable, Pausable {
         require(availableECO(msg.sender) >= _amount * currentPrice); // Require at least current price * tokens
 
         // Mint tokens and sends them to the original sender
-        mint(msg.sender, _amount);
+        super._mint(msg.sender, _amount);
 
         // Take money from account
         takeEco(msg.sender, currentPrice * _amount);
@@ -57,8 +55,8 @@ contract PanamaFuture is ERC20, ERC20Mintable, Ownable, Pausable {
     * @dev Users do not interact with ETH, but in case someone accidentaly sends ETH it shouldn't be stuck
     */
     function withdrawAll() external onlyOwner {
-        uint bal = this.address.balance;
-        address(owner).transfer(bal);
+        uint bal = address(this).balance;
+        payable(address(owner)).transfer(bal);
     }
 
     /** @dev Function to update _currentPrice
@@ -81,14 +79,14 @@ contract PanamaFuture is ERC20, ERC20Mintable, Ownable, Pausable {
      */
     function takeEco(address _from, uint256 _amount) internal {
         require(availableECO(_from) > _amount); // Requre enough EcoBux available
-        ecoBuxAddress.transferFrom(_from, this.address, _amount);
+        ecoBuxAddress.transferFrom(_from, address(this), _amount);
         emit EcoTransfer(_from, _amount);
     }
 
     /** @dev Function to verify user has enough EcoBux to spend
     */
     function availableECO(address user) internal view returns (uint256) {
-        return ecoBuxAddress.allowance(user, this.address);
+        return ecoBuxAddress.allowance(user, address(this));
     }
 
     /** @dev Function determine if input is contract

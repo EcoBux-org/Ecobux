@@ -1,4 +1,4 @@
-pragma solidity 0.6.4;
+pragma solidity ^0.6.0;
 // Import OpenZeppelin's ERC-721 Implementation
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 // Import OpenZeppelin's SafeMath Implementation
@@ -67,10 +67,6 @@ contract PanamaJungle is ERC721, Ownable, Pausable, GSNRecipient {
         uint logID
     );
 
-    // Define name and token symbol
-    string public constant name = "PanamaJungle";
-    string public constant symbol = "PAJ";
-
     // Defince non fungible token address
     ERC721 public nftAddress = ERC721(address(this));
     // Default to 25 ECOB per allotment. Changed by setCurrentPrice()
@@ -81,20 +77,15 @@ contract PanamaJungle is ERC721, Ownable, Pausable, GSNRecipient {
     ERC20 public ecoBuxAddress;
 
     // Start contract with new EcoBux address as parameter
-    constructor(address _ecoBuxAddress) public ERC721() {
+    constructor(address _ecoBuxAddress) public ERC721("PanamaJungle", "PAJ") {
         ecoBuxAddress = ERC20(_ecoBuxAddress);
-    }
-
-    // Fallback function
-    // solhint-disable-next-line no-empty-blocks
-    function() external {
     }
 
     /** @dev Function to group create allotments
     * @param _allotments an array of arrays of points for creating the allotment bounds
         * Each lat lng point has six decimal points, about 4 inches of precision.
         * (precision is not accuracy, note https://gis.stackexchange.com/a/8674 )
-    * @return bool success if the allotment generation was successful 
+    * @return success bool if the allotment generation was successful 
     **/ 
     function createAllotment(uint24[2][5][10] calldata _allotments) external onlyOwner returns (bool success) {
         uint16[] memory addons;
@@ -106,9 +97,10 @@ contract PanamaJungle is ERC721, Ownable, Pausable, GSNRecipient {
                 addons: addons
             });
             // Set the new allotment's id
-            uint256 newAllotmentId = allotments.push(newAllotment).sub(1);
+            allotments.push(newAllotment);
+            uint256 newAllotmentId = allotments.length -1;
             // Mint the allotment
-            super._mint(this.address, newAllotmentId);
+            super._mint(address(this), newAllotmentId);
             // Declare the allotment "birthed"
             emit Transfer(
                 address(0),
@@ -137,7 +129,7 @@ contract PanamaJungle is ERC721, Ownable, Pausable, GSNRecipient {
         for (uint i = 0; i < _tokensDesired; i++) {
             uint tokenId = contractTokens[random()%contractTokens.length]; // Select random token from contract tokens
 
-            nftAddress.safeTransferFrom(this.address, _to, tokenId); // Transfer token from contract to user
+            nftAddress.safeTransferFrom(address(this), _to, tokenId); // Transfer token from contract to user
 
             emit Transferred(
                 _to,
@@ -157,7 +149,8 @@ contract PanamaJungle is ERC721, Ownable, Pausable, GSNRecipient {
             price: _price,
             purchasable: _purchasable
         });
-        uint256 newAddonId = microAddons.push(newAddon).sub(1);
+        microAddons.push(newAddon);
+        uint256 newAddonId = microAddons.length -1;
         emit NewAddon(
             newAddonId,
             _price,
@@ -187,8 +180,8 @@ contract PanamaJungle is ERC721, Ownable, Pausable, GSNRecipient {
     /** @dev Function to withdraw all ETH from contract to balance
     */
     function withdrawAll() external onlyOwner {
-        uint bal = this.address.balance;
-        owner.address.transfer(bal);
+        uint bal = address(this).balance;
+        payable(address(owner)).transfer(bal);
     }
 
     /** @dev Function to get a list of owned allotment's IDs
@@ -235,17 +228,26 @@ contract PanamaJungle is ERC721, Ownable, Pausable, GSNRecipient {
         uint256 nonce,
         bytes calldata approvalData,
         uint256 maxPossibleCharge
-    ) external view returns (uint256, bytes memory) {
+    ) external view override returns (uint256, bytes memory) {
         return _approveRelayedCall();
     }
   
     // Relay Requires this func even if unused
     // GSN Func
     // TODO: Add stuff here
-    function _preRelayedCall(bytes memory context) internal returns (bytes32) {
+    function _preRelayedCall(bytes memory context) internal override returns (bytes32) {
     }
 
-    function _postRelayedCall(bytes memory context, bool, uint256 actualCharge, bytes32) internal {
+    function _postRelayedCall(bytes memory context, bool, uint256 actualCharge, bytes32) internal override {
+    }
+
+    // Needed by Openzeppelin GSN
+    function _msgSender() internal view override(Context, GSNRecipient) returns (address payable) {
+        return GSNRecipient._msgSender();
+    }
+
+    function _msgData() internal view override(Context, GSNRecipient) returns (bytes memory) {
+        return GSNRecipient._msgData();
     }
 
     /** @dev Function to update _currentPrice
@@ -267,7 +269,7 @@ contract PanamaJungle is ERC721, Ownable, Pausable, GSNRecipient {
       * @dev Internal function only
     */
     function availableECO(address user) internal view returns (uint256) {
-        return ecoBuxAddress.allowance(user, this.address);
+        return ecoBuxAddress.allowance(user, address(this));
     }
 
     /** @dev Function to take ecobux from user and transfer to contract
@@ -275,7 +277,7 @@ contract PanamaJungle is ERC721, Ownable, Pausable, GSNRecipient {
      */
     function takeEco(address _from, uint256 _amount) internal {
         require(availableECO(_from) > _amount); // Requre enough EcoBux available
-        require(ecoBuxAddress.transferFrom(_from, this.address, _amount), "Transfer of EcoBux failed");
+        require(ecoBuxAddress.transferFrom(_from, address(this), _amount), "Transfer of EcoBux failed");
         //emit EcoTransfer(_from, _amount);
     }
 

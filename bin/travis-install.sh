@@ -1,4 +1,4 @@
 #!/bin/bash
 npm install
 npm install -g truffle
-npm run gas 2> /dev/null 1> /dev/null & 
+ganache-cli --gasLimit 8000000 2> /dev/null 1> /dev/null & 
