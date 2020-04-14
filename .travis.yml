@@ -1,6 +1,6 @@
 language: node_js
 node_js:
-  - "node"
+  - 10
  
 matrix:
   include:
@@ -16,6 +16,7 @@ install:
  
 script:
   - sleep 45 # to make sure tabookey-gasless is up and running before compiling
+  - set -e
   - rm -rf build
   - truffle compile
   - truffle migrate --reset --network development
