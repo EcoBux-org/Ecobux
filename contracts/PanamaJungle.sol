@@ -1,4 +1,4 @@
-pragma solidity 0.5.10;
+pragma solidity 0.6.4;
 // Import OpenZeppelin's ERC-721 Implementation
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 // Import OpenZeppelin's SafeMath Implementation
@@ -108,7 +108,7 @@ contract PanamaJungle is ERC721, Ownable, Pausable, GSNRecipient {
             // Set the new allotment's id
             uint256 newAllotmentId = allotments.push(newAllotment).sub(1);
             // Mint the allotment
-            super._mint(address(this), newAllotmentId);
+            super._mint(this.address, newAllotmentId);
             // Declare the allotment "birthed"
             emit Transfer(
                 address(0),
@@ -137,7 +137,7 @@ contract PanamaJungle is ERC721, Ownable, Pausable, GSNRecipient {
         for (uint i = 0; i < _tokensDesired; i++) {
             uint tokenId = contractTokens[random()%contractTokens.length]; // Select random token from contract tokens
 
-            nftAddress.safeTransferFrom(address(this), _to, tokenId); // Transfer token from contract to user
+            nftAddress.safeTransferFrom(this.address, _to, tokenId); // Transfer token from contract to user
 
             emit Transferred(
                 _to,
@@ -186,9 +186,9 @@ contract PanamaJungle is ERC721, Ownable, Pausable, GSNRecipient {
 
     /** @dev Function to withdraw all ETH from contract to balance
     */
-    function withdrawAll() external payable onlyOwner {
-        uint bal = address(this).balance;
-        address(owner).transfer(bal);
+    function withdrawAll() external onlyOwner {
+        uint bal = this.address.balance;
+        owner.address.transfer(bal);
     }
 
     /** @dev Function to get a list of owned allotment's IDs
@@ -267,7 +267,7 @@ contract PanamaJungle is ERC721, Ownable, Pausable, GSNRecipient {
       * @dev Internal function only
     */
     function availableECO(address user) internal view returns (uint256) {
-        return ecoBuxAddress.allowance(user, address(this));
+        return ecoBuxAddress.allowance(user, this.address);
     }
 
     /** @dev Function to take ecobux from user and transfer to contract
@@ -275,7 +275,7 @@ contract PanamaJungle is ERC721, Ownable, Pausable, GSNRecipient {
      */
     function takeEco(address _from, uint256 _amount) internal {
         require(availableECO(_from) > _amount); // Requre enough EcoBux available
-        require(ecoBuxAddress.transferFrom(_from, address(this), _amount), "Transfer of EcoBux failed");
+        require(ecoBuxAddress.transferFrom(_from, this.address, _amount), "Transfer of EcoBux failed");
         //emit EcoTransfer(_from, _amount);
     }
 

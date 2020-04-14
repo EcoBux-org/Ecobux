@@ -1,4 +1,4 @@
-pragma solidity 0.5.10;
+pragma solidity 0.6.4;
 // Import OpenZeppelin's ERC-20 Implementation
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 // Import OpenZeppelin's ERC-20 Mintable Implementation
@@ -37,15 +37,10 @@ contract PanamaFuture is ERC20, ERC20Mintable, Ownable, Pausable {
         uint256 currentPrice = 25; // Default to 1 ECOB per FUTURE. Changed by setCurrentPrice()
     }
 
-    // Fallback function
-    // solhint-disable-next-line no-empty-blocks
-    function() external payable {
-    }
-
     /** @dev Fuction to interface with creating and dispensing Future
     * @param _amount Number of Future desired
     */
-    function buyFuture(uint256 _amount) external payable whenNotPaused returns (uint256) {
+    function buyFuture(uint256 _amount) external whenNotPaused returns (uint256) {
         require(availableECO(msg.sender) >= _amount * currentPrice); // Require at least current price * tokens
 
         // Mint tokens and sends them to the original sender
@@ -61,8 +56,8 @@ contract PanamaFuture is ERC20, ERC20Mintable, Ownable, Pausable {
     /** @dev Function to withdraw all ETH from contract to balance
     * @dev Users do not interact with ETH, but in case someone accidentaly sends ETH it shouldn't be stuck
     */
-    function withdrawAll() external payable onlyOwner {
-        uint bal = address(this).balance;
+    function withdrawAll() external onlyOwner {
+        uint bal = this.address.balance;
         address(owner).transfer(bal);
     }
 
@@ -86,14 +81,14 @@ contract PanamaFuture is ERC20, ERC20Mintable, Ownable, Pausable {
      */
     function takeEco(address _from, uint256 _amount) internal {
         require(availableECO(_from) > _amount); // Requre enough EcoBux available
-        ecoBuxAddress.transferFrom(_from, address(this), _amount);
+        ecoBuxAddress.transferFrom(_from, this.address, _amount);
         emit EcoTransfer(_from, _amount);
     }
 
     /** @dev Function to verify user has enough EcoBux to spend
     */
     function availableECO(address user) internal view returns (uint256) {
-        return ecoBuxAddress.allowance(user, address(this));
+        return ecoBuxAddress.allowance(user, this.address);
     }
 
     /** @dev Function determine if input is contract

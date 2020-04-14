@@ -1,4 +1,4 @@
-pragma solidity 0.5.10;
+pragma solidity 0.6.4;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20Mintable.sol";
@@ -18,11 +18,6 @@ contract EcoBux is ERC20, ERC20Mintable, Ownable {
     modifier hasMintPermission() {
         require(msg.sender == owner);
         _;
-    }
-
-    // Fallback function
-    // solhint-disable-next-line no-empty-blocks
-    function() external {
     }
 
     /**
