@@ -1,17 +1,17 @@
 const PanamaJungle = artifacts.require('./PanamaJungle.sol')
-const EcoBucks = artifacts.require('./EcoBucks.sol')
+const EcoBux = artifacts.require('./EcoBux.sol')
 
 //const numberToBN = require('number-to-bn');
 const assert = require('assert')
 const assertRevert = require('./utils/assertRevert').assertRevert;
 const truffleAssert = require('truffle-assertions');
 let contractInstance
-let ecoBucksInstance
+let ecoBuxInstance
 
-contract('PanamaJungle/EcoBucks', (accounts) => {
+contract('PanamaJungle/EcoBux', (accounts) => {
     beforeEach(async () => {
-        ecoBucksInstance = await EcoBucks.deployed()
-        contractInstance = await PanamaJungle.deployed(ecoBucksInstance.address)
+        ecoBuxInstance = await EcoBux.deployed()
+        contractInstance = await PanamaJungle.deployed(ecoBuxInstance.address)
     })
 
     it('should create multiple allotments and then get details of a specified allotment', async () => {
@@ -36,8 +36,8 @@ contract('PanamaJungle/EcoBucks', (accounts) => {
         const price = 10
         const purchasable = 1
 
-        let ecob = await ecoBucksInstance.createEco(accounts[0],1000)
-        await ecoBucksInstance.approve(contractInstance.address, 1000)
+        let ecob = await ecoBuxInstance.createEco(accounts[0],1000)
+        await ecoBuxInstance.approve(contractInstance.address, 1000)
 
         let addonId = await contractInstance.createMicro(price, purchasable, {from: accounts[0]})
 
@@ -57,8 +57,8 @@ contract('PanamaJungle/EcoBucks', (accounts) => {
         const price = 1
         const purchasable = 1
 
-        let ecob = await ecoBucksInstance.createEco(accounts[0],1000)
-        await ecoBucksInstance.approve(contractInstance.address, 1000)
+        let ecob = await ecoBuxInstance.createEco(accounts[0],1000)
+        await ecoBuxInstance.approve(contractInstance.address, 1000)
 
         let allotment = await contractInstance.createTestAllotment()//, accounts[0])
         truffleAssert.eventEmitted(allotment, 'Birth');
