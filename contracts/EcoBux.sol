@@ -1,9 +1,10 @@
 pragma solidity 0.5.10;
 
-import "openzeppelin-solidity/contracts/token/ERC20/ERC20.sol";
-import "openzeppelin-solidity/contracts/token/ERC20/ERC20Mintable.sol";
+import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/ERC20Mintable.sol";
 import "./utils/Ownable.sol";
-
+// Now using new openzeppelin's gsn
+import "@openzeppelin/contracts/GSN/GSNRecipient.sol";
 
 contract EcoBux is ERC20, ERC20Mintable, Ownable {
     event Mint(address indexed to, uint256 amount);

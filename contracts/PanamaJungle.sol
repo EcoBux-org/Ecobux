@@ -1,15 +1,16 @@
 pragma solidity 0.5.10;
 // Import OpenZeppelin's ERC-721 Implementation
-import "openzeppelin-solidity/contracts/token/ERC721/ERC721.sol";
+import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 // Import OpenZeppelin's SafeMath Implementation
-import "openzeppelin-solidity/contracts/math/SafeMath.sol";
-import "tabookey-gasless/contracts/RelayRecipient.sol";
+import "@openzeppelin/contracts/math/SafeMath.sol";
+// Now using new openzeppelin's gsn
+import "@openzeppelin/contracts/GSN/GSNRecipient.sol";
 import "./utils/Ownable.sol";
 import "./utils/Pausable.sol";
 import "./utils/Erc20.sol";
 
 
-contract PanamaJungle is ERC721, Ownable, Pausable, RelayRecipient {
+contract PanamaJungle is ERC721, Ownable, Pausable, GSNRecipient {
 
     using SafeMath for uint256;
 
@@ -122,11 +123,11 @@ contract PanamaJungle is ERC721, Ownable, Pausable, RelayRecipient {
     * @param _tokensDesired number of tokens desired
     */
     function buyAllotments(uint256 _tokensDesired, address _to) external whenNotPaused {
-        require(get_sender() != address(0) && get_sender() != address(this)); // Only be used by users to buy allotments
-        require(availableECO(get_sender()) >= currentPrice * _tokensDesired, "Not enough available Ecobux!");
+        require(_msgSender() != address(0) && _msgSender() != address(this)); // Only be used by users to buy allotments
+        require(availableECO(_msgSender()) >= currentPrice * _tokensDesired, "Not enough available Ecobux!");
 
         // Take money from account before so no chance of re entry attacks
-        takeEco(get_sender(), currentPrice * _tokensDesired);
+        takeEco(_msgSender(), currentPrice * _tokensDesired);
         
         // Array of contract tokens for random selection 
         uint256[] memory contractTokens = this.ownedAllotments(address(this));
@@ -172,11 +173,11 @@ contract PanamaJungle is ERC721, Ownable, Pausable, RelayRecipient {
     */
     function purchaseMicro(uint256 tokenID, uint16 addonID) external whenNotPaused returns (uint16[] memory) {
         require(microAddons[addonID].purchasable, "Selected microaddon does not exist or is not purchasable.");
-        require(availableECO(get_sender()) > microAddons[addonID].price, "Not enough available EcoBux!");
+        require(availableECO(_msgSender()) > microAddons[addonID].price, "Not enough available EcoBux!");
         require(_exists(tokenID), "Selected Token does not exist");
 
         // Take money from account
-        takeEco(get_sender(), microAddons[addonID].price);
+        takeEco(_msgSender(), microAddons[addonID].price);
 
         allotments[tokenID].addons.push(addonID); // Add addonID to token array
 
@@ -222,34 +223,29 @@ contract PanamaJungle is ERC721, Ownable, Pausable, RelayRecipient {
     }
 
     // Relay Functions to allow users to avoid needing a wallet 
-    // TabookeyGasless Function
-    function accept_relayed_call(
-        address,    // Relay
-        address,    // From
-        bytes memory,      //encoded_function
-        uint,       // gas_price
-        uint        // transaction_fee
-    ) public view returns(uint32) {
-        // TODO: Only accept verified users
-        return 0; // accept everything.
+    // GSN func
+    // TODO: LIMIT USE OF THIS; ANY USER CAN DRAIN
+    function acceptRelayedCall(
+        address relay,
+        address from,
+        bytes calldata encodedFunction,
+        uint256 transactionFee,
+        uint256 gasPrice,
+        uint256 gasLimit,
+        uint256 nonce,
+        bytes calldata approvalData,
+        uint256 maxPossibleCharge
+    ) external view returns (uint256, bytes memory) {
+        return _approveRelayedCall();
     }
-
+  
     // Relay Requires this func even if unused
-    // TabookeyGasless Function
-    function post_relayed_call(
-        address, //relay
-        address, //from
-        bytes memory, //encoded_function
-        bool, //success
-        uint, //used_gas
-        uint // transaction_fee
-    ) public {
-      // TODO: Add stuff here
+    // GSN Func
+    // TODO: Add stuff here
+    function _preRelayedCall(bytes memory context) internal returns (bytes32) {
     }
 
-    // TabookeyGasless Function
-    function init_hub(RelayHub hubAddr) public onlyOwner {
-        init_relay_hub(hubAddr);
+    function _postRelayedCall(bytes memory context, bool, uint256 actualCharge, bytes32) internal {
     }
 
     /** @dev Function to update _currentPrice
@@ -291,7 +287,7 @@ contract PanamaJungle is ERC721, Ownable, Pausable, RelayRecipient {
       * @return psuedoRandom nnumbers
       */
     function random() internal returns(uint) {
-        uint randomNum = uint(keccak256(abi.encodePacked(now, get_sender(), randomNonce))) % 100;
+        uint randomNum = uint(keccak256(abi.encodePacked(now, _msgSender(), randomNonce))) % 100;
         randomNonce++;
         return randomNum;
     }

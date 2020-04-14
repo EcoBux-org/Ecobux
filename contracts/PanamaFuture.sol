@@ -1,10 +1,12 @@
 pragma solidity 0.5.10;
 // Import OpenZeppelin's ERC-20 Implementation
-import "openzeppelin-solidity/contracts/token/ERC20/ERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 // Import OpenZeppelin's ERC-20 Mintable Implementation
-import "openzeppelin-solidity/contracts/token/ERC20/ERC20Mintable.sol";
+import "@openzeppelin/contracts/token/ERC20/ERC20Mintable.sol";
 // Import OpenZeppelin's SafeMath Implementation
-import "openzeppelin-solidity/contracts/math/SafeMath.sol";
+import "@openzeppelin/contracts/math/SafeMath.sol";
+// Now using new openzeppelin's gsn
+import "@openzeppelin/contracts/GSN/GSNRecipient.sol";
 import "./utils/Ownable.sol";
 import "./utils/Pausable.sol";
 

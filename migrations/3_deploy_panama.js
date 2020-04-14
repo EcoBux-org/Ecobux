@@ -24,9 +24,4 @@ module.exports = async (deployer, network, accounts) => {
     await deployer.deploy(PanamaJungle, EcoBux.address)
     let paj = await PanamaJungle.deployed();
 
-    let hub = await RelayHub.at(hubAddr).catch(e => {
-        console.log("error: ", e)
-    })
-    await hub.depositFor(PanamaJungle.address, { value:1e18 })
-    await paj.init_hub(hubAddr);
 };

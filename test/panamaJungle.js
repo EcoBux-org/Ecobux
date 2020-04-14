@@ -14,15 +14,6 @@ contract('PanamaJungle/EcoBux', (accounts) => {
         contractInstance = await PanamaJungle.deployed(ecoBuxInstance.address)
     })
 
-    it('should create multiple allotments and then get details of a specified allotment', async () => {
-        // Create test allotment
-
-        let details = await contractInstance.createTestAllotment()//, accounts[0])
-
-        truffleAssert.eventEmitted(details, 'Birth');
-
-    })
-
     it('should create and then get details of a purchasable microaddon', async () => {
         const price = 10
         const purchasable = 1
@@ -50,26 +41,6 @@ contract('PanamaJungle/EcoBux', (accounts) => {
             //truffleAssert.eventEmitted(purchase, 'EcoTransfer');
             return true
         });
-
-    })
-
-    it('should create and then fail to buy a non purchasable microaddon', async () => {
-        const price = 1
-        const purchasable = 1
-
-        let ecob = await ecoBuxInstance.createEco(accounts[0],1000)
-        await ecoBuxInstance.approve(contractInstance.address, 1000)
-
-        let allotment = await contractInstance.createTestAllotment()//, accounts[0])
-        truffleAssert.eventEmitted(allotment, 'Birth');
-
-
-        let addonId = await contractInstance.createMicro(price, purchasable, {from: accounts[0]})
-        //let purchase =
-        //await contractInstance.purchaseMicro(0, 0, {from: accounts[0]})
-        // // truffleAssert.eventNotEmitted(purchase, 'EcoTransfer');
-        return true
-
 
     })
 

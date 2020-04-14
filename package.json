@@ -7,17 +7,23 @@
     "test": "test"
   },
   "dependencies": {
+    "@openzeppelin/contracts": "^2.5.0",
     "bignumber": "^1.1.0",
     "bignumber.js": "^9.0.0",
-    "openzeppelin-solidity": "^2.5.0",
     "number-to-bn": "^1.7.0",
-    "tabookey-gasless": "^0.4.5",
+    "openzeppelin-solidity": "^2.5.0",
     "truffle-assertions": "^0.9.2"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "@openzeppelin/cli": "^2.8.2",
+    "@openzeppelin/contracts-ethereum-package": "^2.5.0",
+    "@openzeppelin/gsn-helpers": "^0.2.3",
+    "@openzeppelin/upgrades": "^2.8.0",
+    "ganache-cli": "^6.9.1"
+  },
   "scripts": {
     "test": "solhint contracts/*.sol",
-    "gas": "cd node_modules/tabookey-gasless && npm run gsn-dock-relay-ganache"
+    "gas": "ganache-cli"
   },
   "repository": {
     "type": "git",
