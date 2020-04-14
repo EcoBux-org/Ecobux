@@ -62,8 +62,8 @@ contract PanamaJungle is ERC721, Ownable, Pausable, RelayRecipient {
 
     // TEST EVENT: TODO: DELETE
     event log(
-      string msg,
-      uint logID
+        string msg,
+        uint logID
     );
 
     // Define name and token symbol
@@ -72,9 +72,9 @@ contract PanamaJungle is ERC721, Ownable, Pausable, RelayRecipient {
 
     // Defince non fungible token address
     ERC721 public nftAddress = ERC721(address(this));
-    // Default to 2 ECOB per allotment. Changed by setCurrentPrice()
+    // Default to 25 ECOB per allotment. Changed by setCurrentPrice()
     uint256 public currentPrice = 25; 
-    // Nonce for RNG. Can be predictable as it only determines which allotment to buy
+    // Nonce for RNG. Can be predictable, however it only determines which allotment to buy
     uint private randomNonce; 
     // Declare ecobux address
     ERC20 public ecoBuxAddress;
@@ -109,11 +109,10 @@ contract PanamaJungle is ERC721, Ownable, Pausable, RelayRecipient {
             // Mint the allotment
             super._mint(address(this), newAllotmentId);
             // Declare the allotment "birthed"
-            emit Birth(
+            emit Transfer(
+                address(0),
                 address(this),
-                newAllotmentId,
-                newAllotment.geoMap,
-                newAllotment.addons
+                newAllotmentId
             );
         }
         return true;
@@ -128,8 +127,9 @@ contract PanamaJungle is ERC721, Ownable, Pausable, RelayRecipient {
 
         // Take money from account before so no chance of re entry attacks
         takeEco(get_sender(), currentPrice * _tokensDesired);
-
-        uint256[] memory contractTokens = this.ownedAllotments(address(this)); // Array of contract tokens for random selection
+        
+        // Array of contract tokens for random selection 
+        uint256[] memory contractTokens = this.ownedAllotments(address(this));
 
         require(contractTokens.length > _tokensDesired, "Not enough available tokens!"); // Need enough tokens available
 

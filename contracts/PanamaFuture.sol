@@ -30,9 +30,9 @@ contract PanamaFuture is ERC20, ERC20Mintable, Ownable, Pausable {
 
     // Start contract with new EcoBux address
     constructor(address _ecoBuxAddress) public ERC20() {
-         ERC20 ecoBuxAddress = ERC20(_ecoBuxAddress);
-         ERC20 futureAddress= ERC20(address(this));
-         uint256 currentPrice = 25; // Default to 1 ECOB per FUTURE. Changed by setCurrentPrice()
+        ERC20 ecoBuxAddress = ERC20(_ecoBuxAddress);
+        ERC20 futureAddress= ERC20(address(this));
+        uint256 currentPrice = 25; // Default to 1 ECOB per FUTURE. Changed by setCurrentPrice()
     }
 
     // Fallback function
