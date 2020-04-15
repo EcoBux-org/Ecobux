@@ -182,13 +182,6 @@ contract PanamaJungle is ERC721, Ownable, Pausable, GSNRecipient {
         return allotments[tokenID].addons;
     }
 
-    /** @dev Function to withdraw all ETH from contract to balance
-     */
-    function withdrawAll() external onlyOwner {
-        uint256 bal = address(this).balance;
-        payable(address(owner)).transfer(bal);
-    }
-
     /** @dev Function to get a list of owned allotment's IDs
      * @return A uint array which contains IDs of all owned allotments
      */

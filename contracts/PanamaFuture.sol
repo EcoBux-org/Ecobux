@@ -22,6 +22,7 @@ contract PanamaFuture is ERC20, Ownable, Pausable {
 
     // Start contract with new EcoBux address
     constructor(address _ecoBuxAddress) public ERC20("PanamaFuture", "PAF") {
+        _setupDecimals(0);
         ERC20 futureAddress = ERC20(address(this));
         ecoBuxAddress = ERC20(_ecoBuxAddress);
         currentPrice = 25; // Default to 1 ECOB per FUTURE. Changed by setCurrentPrice()

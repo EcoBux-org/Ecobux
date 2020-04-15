@@ -7,6 +7,7 @@ const truffleAssert = require('truffle-assertions');
 contract('PanamaFuture', (accounts) => {
   const _name = "PanamaFuture";
   const _symbol = "PAF";
+  const _decimals = 0;
 
   beforeEach(async () => {
     EcoBuxInstance = await EcoBux.deployed()
@@ -21,6 +22,10 @@ contract('PanamaFuture', (accounts) => {
     assert.equal(await PanamaFutureInstance.symbol(), _symbol, "Symbol is incorrect!");
   });
   
+  it("should have 0 decimals", async () => {
+    assert.equal(await PanamaFutureInstance.decimals(), _decimals, "Decimals are incorrect!");
+  });
+
   it("should mint tokens", async () => {
     // Setup
     const ecoMint = 250;
