@@ -79,4 +79,52 @@ contract('PanamaFuture', (accounts) => {
       "Only the owner can run this function"
     )
   })
+
+  it("should transfer owership of contract", async () => {
+        const owner = await PanamaFutureInstance.transferOwnership(accounts[1], {from: accounts[0]})
+        truffleAssert.eventEmitted(owner, 'OwnershipTransferred', (ev) => {
+          return true
+        })
+        /*
+        await truffleAssert.reverts( 
+            PanamaFutureInstance.transferOwnership(accounts[2], {from: accounts[2]}),
+            "Only the owner can run this function"
+        )
+        */ 
+    })
+  
+    it("should fail to transfer ownership if to 0 address", async () => {
+        await truffleAssert.reverts( 
+            PanamaFutureInstance.transferOwnership('0x0000000000000000000000000000000000000000', {from: accounts[1]}),
+            "Ownership cannot be transferred to zero address"
+        )
+    })
+    
+    it("should fail to transfer ownership if not owner", async () => {
+        await truffleAssert.reverts( 
+            PanamaFutureInstance.transferOwnership(accounts[2], {from: accounts[2]}),
+            "Only the owner can run this function"
+        )
+    })
+
+    it("should fail to relinquish ownership if not owner", async () => {
+        await truffleAssert.reverts( 
+            PanamaFutureInstance.renounceOwnership({from: accounts[2]}),
+            "Only the owner can run this function"
+        )
+    })
+
+    it("should relinquish owership of contract", async () => {
+        // BUG: This should be from accounts[0] but it has to be from acconts[1] because of transfer owner test
+        const owner = await PanamaFutureInstance.renounceOwnership({from: accounts[1]})
+        truffleAssert.eventEmitted(owner, 'OwnershipRenounced', (ev) => {
+          return true
+        })
+
+        await truffleAssert.reverts( 
+            PanamaFutureInstance.transferOwnership(accounts[1], {from: accounts[0]}),
+            "Only the owner can run this function"
+        )
+    
+    })
 })

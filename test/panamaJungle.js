@@ -105,12 +105,17 @@ contract('PanamaJungle', (accounts) => {
         truffleAssert.eventEmitted(owner, 'OwnershipTransferred', (ev) => {
           return true
         })
-        /*
         await truffleAssert.reverts( 
             contractInstance.transferOwnership(accounts[2], {from: accounts[2]}),
             "Only the owner can run this function"
         )
-        */ 
+    })
+  
+    it("should fail to transfer ownership if to 0 address", async () => {
+        await truffleAssert.reverts( 
+            contractInstance.transferOwnership('0x0000000000000000000000000000000000000000', {from: accounts[1]}),
+            "Ownership cannot be transferred to zero address"
+        )
     })
     
     it("should fail to transfer ownership if not owner", async () => {
@@ -126,7 +131,27 @@ contract('PanamaJungle', (accounts) => {
             "Only the owner can run this function"
         )
     })
+    
+    it("should not allow contract functions if paused", async () => {
+        // Setup
+        await contractInstance.pause({from: accounts[1]})
 
+        await truffleAssert.reverts( 
+            contractInstance.buyAllotments(0, accounts[0], {from: accounts[0]}),
+            "Function cannot be used while contract is paused"
+        )
+        
+    })
+    it("should only allow contract functions if not paused", async () => {
+        // BUG: Contract should already be unpaused but it isnt due to prev test
+        // Fix: manually unpause at start of this test
+        await contractInstance.unpause({from: accounts[1]}),
+        await truffleAssert.reverts( 
+            contractInstance.unpause({from: accounts[1]}),
+            "Function cannot be used while contract is not paused"
+        )
+    })
+    // Keep this at the end; After this test there is no owner
     it("should relinquish owership of contract", async () => {
         // BUG: This should be from accounts[0] but it has to be from acconts[1] because of transfer owner test
         const owner = await contractInstance.renounceOwnership({from: accounts[1]})
@@ -138,7 +163,5 @@ contract('PanamaJungle', (accounts) => {
             contractInstance.transferOwnership(accounts[1], {from: accounts[0]}),
             "Only the owner can run this function"
         )
-    
     })
-    
 })

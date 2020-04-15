@@ -25,7 +25,8 @@
   "scripts": {
     "lint": "solhint contracts/*.sol",
     "gas": "ganache-cli",
-    "test": "truffle test"
+    "test": "truffle test",
+    "coverage": "truffle run coverage"
   },
   "repository": {
     "type": "git",
