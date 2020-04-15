@@ -9,6 +9,5 @@ module.exports = function(deployer, network, accounts) {
       await deployer.deploy(MarketPlace, EcoBux.address);
       await deployer.deploy(PanamaFuture, EcoBux.address);
       await deployer.deploy(PanamaJungle, EcoBux.address);
-
     });
 };

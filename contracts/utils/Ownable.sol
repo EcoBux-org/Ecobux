@@ -31,7 +31,7 @@ abstract contract Ownable {
     * @dev Throws if called by any account other than the owner.
     */
     modifier onlyOwner() {
-        require(msg.sender == owner);
+        require(msg.sender == owner, "Only the owner can run this function");
         _;
     }
 

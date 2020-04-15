@@ -8,7 +8,6 @@ import "@openzeppelin/contracts/GSN/GSNRecipient.sol";
 import "./utils/Ownable.sol";
 import "./utils/Pausable.sol";
 
-
 contract PanamaFuture is ERC20, Ownable, Pausable {
     using SafeMath for uint256;
 
@@ -36,7 +35,8 @@ contract PanamaFuture is ERC20, Ownable, Pausable {
         whenNotPaused
         returns (uint256)
     {
-        require(availableECO(msg.sender) >= _amount * currentPrice); // Require at least current price * tokens
+        // Require at least current price * tokens
+        require(availableECO(msg.sender) >= _amount * currentPrice, "Not Enough EcoBux"); 
 
         // Mint tokens and sends them to the original sender
         super._mint(msg.sender, _amount);
@@ -44,7 +44,7 @@ contract PanamaFuture is ERC20, Ownable, Pausable {
         // Take money from account
         takeEco(msg.sender, currentPrice * _amount);
 
-        // Emit event to show what happened
+        // Emit Transferred after Future is transferred 
         emit Transferred(msg.sender, _amount);
     }
 
@@ -68,14 +68,13 @@ contract PanamaFuture is ERC20, Ownable, Pausable {
      * @dev Throws if _ecoBuxAddress is not a contract address
      */
     function setEcoBuxAddress(address _ecoBuxAddress) public onlyOwner {
-        require(isContract(_ecoBuxAddress)); // ecoBuxAddress is common denominator contract for all subcontracts
         ecoBuxAddress = ERC20(_ecoBuxAddress);
     }
 
     /** @dev Function to take EcoBux from user and transfers it to contract
      */
     function takeEco(address _from, uint256 _amount) internal {
-        require(availableECO(_from) > _amount); // Requre enough EcoBux available
+        require(availableECO(_from) >= _amount, "Not Enough EcoBux"); // Requre enough EcoBux available
         ecoBuxAddress.transferFrom(_from, address(this), _amount);
         emit EcoTransfer(_from, _amount);
     }
@@ -84,16 +83,5 @@ contract PanamaFuture is ERC20, Ownable, Pausable {
      */
     function availableECO(address user) internal view returns (uint256) {
         return ecoBuxAddress.allowance(user, address(this));
-    }
-
-    /** @dev Function determine if input is contract
-     * @return bool if input is a contract
-     */
-    function isContract(address _addr) internal view returns (bool) {
-        uint32 size;
-        assembly {
-            size := extcodesize(_addr)
-        }
-        return (size > 0);
     }
 }
