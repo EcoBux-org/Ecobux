@@ -48,19 +48,10 @@ contract PanamaFuture is ERC20, Ownable, Pausable {
         emit Transferred(msg.sender, _amount);
     }
 
-    /** @dev Function to withdraw all ETH from contract to balance
-     * @dev Users do not interact with ETH, but in case someone accidentaly sends ETH it shouldn't be stuck
-     */
-    function withdrawAll() external onlyOwner {
-        uint256 bal = address(this).balance;
-        payable(address(owner)).transfer(bal);
-    }
-
     /** @dev Function to update _currentPrice
      * @dev Throws if _currentPrice is zero
      */
     function setCurrentPrice(uint256 _currentPrice) public onlyOwner {
-        require(_currentPrice > 0); // This shouldn't ever throw, but sanitization of inputs is never a bad thing
         currentPrice = _currentPrice;
     }
 

@@ -52,7 +52,7 @@ contract('PanamaFuture', (accounts) => {
     // Check if price was actually changed
     assert.equal(await PanamaFutureInstance.currentPrice.call(), newPrice, "Price was not successfully updated");
   })
-  
+
   it("should fail to set a new price if not owner", async () => {
     // Set new price
     const newPrice = 1000;
