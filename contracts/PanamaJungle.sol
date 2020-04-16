@@ -41,14 +41,11 @@ contract PanamaJungle is ERC721, Ownable, Pausable, GSNRecipient {
         uint16[] addons
     );
 
-    // Event that will be emitted whenever ownership is transferred of a token
-    event Transferred(address owner, uint256 allotmentId);
-
     // Event emitted when ECOB are transferred from user to contract
-    /*event EcoTransfer(
+    event EcoTransfer(
         address owner,
         uint256 amount
-    );*/
+    );
 
     // Event emitted when a new mircoAddon is created
     event NewAddon(uint256 addonId, uint16 price, bool purchasable);
@@ -71,13 +68,14 @@ contract PanamaJungle is ERC721, Ownable, Pausable, GSNRecipient {
     }
 
     /** @dev Function to group create allotments
-     * @param _allotments an array of arrays of points for creating the allotment bounds
-     * Each lat lng point has six decimal points, about 4 inches of precision.
+     * @param _allotments an array of arrays of points for creating each allotment bounds
+     * Each lat lng point converts to having six decimal points, about 4 inches of precision.
+     * They are stored compressed in uint24 to save space
+     * And solidity does not handle fixed points well
      * (precision is not accuracy, note https://gis.stackexchange.com/a/8674 )
      * @return success bool if the allotment generation was successful
      **/
-
-    function createAllotment(uint24[2][5][10] calldata _allotments)
+    function bulkCreateAllotment(uint24[2][5][17] calldata _allotments)
         external
         onlyOwner
         returns (bool success)
@@ -85,30 +83,15 @@ contract PanamaJungle is ERC721, Ownable, Pausable, GSNRecipient {
         uint16[] memory addons;
         // For each allotment in initial array
         for (uint256 i = 0; i < _allotments.length; i++) {
-            // Create new struct containing geopoints and an empty array of addons
-            Allotment memory newAllotment = Allotment({
-                geoMap: _allotments[i],
-                addons: addons
-            });
-            // Set the new allotment's id
-            allotments.push(newAllotment);
-            uint256 newAllotmentId = allotments.length - 1;
-            // Mint the allotment
-            super._mint(address(this), newAllotmentId);
-            // Declare the allotment "birthed"
-            emit Transfer(address(0), address(this), newAllotmentId);
+            _createAllotment(_allotments[i]);
         }
         return true;
     }
 
-    /** @dev Function to buy one or more allotments
-     * @param _tokensDesired number of tokens desired
-     */
     function buyAllotments(uint256 _tokensDesired, address _to)
         external
         whenNotPaused
     {
-        require(_msgSender() != address(0) && _msgSender() != address(this)); // Only be used by users to buy allotments
         require(
             availableECO(_msgSender()) >= currentPrice * _tokensDesired,
             "Not enough available Ecobux!"
@@ -117,23 +100,24 @@ contract PanamaJungle is ERC721, Ownable, Pausable, GSNRecipient {
         // Take money from account before so no chance of re entry attacks
         takeEco(_msgSender(), currentPrice * _tokensDesired);
 
-        // Array of contract tokens for random selection
-        uint256[] memory contractTokens = this.ownedAllotments(address(this));
+        uint256[] memory contractTokens = this.ownedAllotments(address(this)); 
 
         require(
-            contractTokens.length > _tokensDesired,
+            contractTokens.length >= _tokensDesired,
             "Not enough available tokens!"
-        ); // Need enough tokens available
+        ); 
 
         for (uint256 i = 0; i < _tokensDesired; i++) {
-            uint256 tokenId = contractTokens[random() % contractTokens.length]; // Select random token from contract tokens
-
-            nftAddress.safeTransferFrom(address(this), _to, tokenId); // Transfer token from contract to user
-
-            emit Transferred(_to, tokenId);
+            // Select random token from contract tokens
+            uint256 tokenId = contractTokens[random() % contractTokens.length]; 
+            emit log("Allotment desired: ", tokenId);
+            nftAddress.safeTransferFrom(address(this), _to, tokenId); // Transfer token from contract to user 
+            // Refresh the list of available allotments
+            // cant use pop() because its a memory array, we just have to start from scratch
+            // gas cost is negligible however
+            contractTokens = this.ownedAllotments(address(this)); 
         }
     }
-
     /** @dev Function to create a new type of microaddon
      * @param _price uint of the cost (in ecobux) of the new microaddon
      * @param _purchasable bool determining if the new microaddon can be purchased by users
@@ -169,7 +153,7 @@ contract PanamaJungle is ERC721, Ownable, Pausable, GSNRecipient {
             "Selected microaddon does not exist or is not purchasable."
         );
         require(
-            availableECO(_msgSender()) > microAddons[addonID].price,
+            availableECO(_msgSender()) >= microAddons[addonID].price,
             "Not enough available EcoBux!"
         );
         require(_exists(tokenID), "Selected Token does not exist");
@@ -283,7 +267,6 @@ contract PanamaJungle is ERC721, Ownable, Pausable, GSNRecipient {
      * @dev Throws if _currentPrice is zero
      */
     function setCurrentPrice(uint256 _currentPrice) public onlyOwner {
-        require(_currentPrice > 0); // This shouldn't ever throw, but sanitization of inputs is never a bad thing
         currentPrice = _currentPrice;
     }
 
@@ -305,7 +288,7 @@ contract PanamaJungle is ERC721, Ownable, Pausable, GSNRecipient {
      * @dev Internal function only
      */
     function takeEco(address _from, uint256 _amount) internal {
-        require(availableECO(_from) > _amount); // Requre enough EcoBux available
+        require(availableECO(_from) >= _amount, "Not Enough EcoBux"); // Requre enough EcoBux available
         require(
             ecoBuxAddress.transferFrom(_from, address(this), _amount),
             "Transfer of EcoBux failed"
@@ -326,5 +309,20 @@ contract PanamaJungle is ERC721, Ownable, Pausable, GSNRecipient {
         ) % 100;
         randomNonce++;
         return randomNum;
+    }
+
+    function _createAllotment(uint24[2][5] memory _allotment) internal {
+        uint16[] memory addons;
+        // Create new struct containing geopoints and an empty array of addons
+        Allotment memory newAllotment = Allotment({
+            geoMap: _allotment,
+            addons: addons
+        });
+        // Set the new allotment's id
+        allotments.push(newAllotment);
+        uint256 newAllotmentId = allotments.length - 1;
+        // Mint the allotment
+        super._mint(address(this), newAllotmentId);
+        emit Transfer(address(0), address(this), newAllotmentId);
     }
 }
