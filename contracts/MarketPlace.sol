@@ -30,8 +30,8 @@ contract MarketPlace is Ownable, Pausable {
     // EVENTS
     event OrderCreated(
         bytes32 id,
-        uint256 indexed allotmentId,
-        address indexed allotmentOwner,
+        uint256 indexed assetId,
+        address indexed assetOwner,
         address subTokenAddress,
         uint256 ecoPrice
     );
@@ -61,7 +61,7 @@ contract MarketPlace is Ownable, Pausable {
         address subTokenAddress;
         // Price (in ecob) for the published item
         uint256 price;
-        // Owner of the allotment
+        // Owner of the asset
         address seller;
     }
 
@@ -71,47 +71,47 @@ contract MarketPlace is Ownable, Pausable {
      */
     function createOrder(
         address subTokenAddress,
-        uint256 allotmentId,
+        uint256 assetId,
         uint256 ecoPrice
     ) external {
         _requireERC721(subTokenAddress);
 
         ERC721 subToken = ERC721(subTokenAddress);
-        address allotmentOwner = subToken.ownerOf(allotmentId);
+        address assetOwner = subToken.ownerOf(assetId);
 
-        require(msg.sender == allotmentOwner, "Only the owner can make orders");
+        require(msg.sender == assetOwner, "Only the owner can make orders");
         require(ecoPrice > 0, "Price should be greater than 0");
         require(
             _availableECO(msg.sender) > (projectFee+charityFee),
             "Owner does not have enough EcoBux to pay publication fee"
         );
         require(
-            subToken.getApproved(allotmentId) == address(this) ||
-                subToken.isApprovedForAll(allotmentOwner, address(this)),
+            subToken.getApproved(assetId) == address(this) ||
+                subToken.isApprovedForAll(assetOwner, address(this)),
             "The contract is not authorized to manage the asset"
         );
 
         bytes32 orderId = keccak256(
             abi.encodePacked(
                 block.timestamp,
-                allotmentOwner,
-                allotmentId,
+                assetOwner,
+                assetId,
                 subTokenAddress,
                 ecoPrice
             )
         );
 
-        orderByAssetId[subTokenAddress][allotmentId] = Order({
+        orderByAssetId[subTokenAddress][assetId] = Order({
             id: orderId,
             subTokenAddress: subTokenAddress,
             price: ecoPrice,
-            seller: allotmentOwner
+            seller: assetOwner
         });
 
         emit OrderCreated(
             orderId,
-            allotmentId,
-            allotmentOwner,
+            assetId,
+            assetOwner,
             subTokenAddress,
             ecoPrice
         );
@@ -119,10 +119,10 @@ contract MarketPlace is Ownable, Pausable {
 
     /** @dev Cancel existing order
      */
-    function cancelOrder(address subTokenAddress, uint256 allotmentId)
+    function cancelOrder(address subTokenAddress, uint256 assetId)
         external
     {
-        Order memory order = orderByAssetId[subTokenAddress][allotmentId];
+        Order memory order = orderByAssetId[subTokenAddress][assetId];
 
         require(order.id != 0, "Asset not published");
         require(
@@ -133,16 +133,14 @@ contract MarketPlace is Ownable, Pausable {
         bytes32 orderId = order.id;
         address orderSeller = order.seller;
         address orderTokenAddress = order.subTokenAddress;
-        delete orderByAssetId[subTokenAddress][allotmentId];
+        delete orderByAssetId[subTokenAddress][assetId];
 
         emit OrderCancelled(
             orderId,
-            allotmentId,
+            assetId,
             orderSeller,
             orderTokenAddress
         );
-
-        //return order;
     }
 
     /** @dev Execute sale of order
@@ -150,29 +148,33 @@ contract MarketPlace is Ownable, Pausable {
     function executeOrder(
         address subTokenAddress,
         uint256 assetId,
-        uint256 price,
-        bytes calldata fingerprint
-    ) external returns (bool) {
+        uint256 price
+        //bytes calldata fingerprint
+    ) external {
         _requireERC721(subTokenAddress);
 
         ERC721Verifiable nftRegistry = ERC721Verifiable(subTokenAddress);
 
-        if (nftRegistry.supportsInterface(INTERFACEID_VALIDATEFINGERPRINT)) {
-            require(
-                nftRegistry.verifyFingerprint(assetId, fingerprint),
-                "The asset fingerprint is not valid"
-            );
-        }
+        //if (nftRegistry.supportsInterface(INTERFACEID_VALIDATEFINGERPRINT)) {
+        //    require(
+        //        nftRegistry.verifyFingerprint(assetId, fingerprint),
+        //        "The asset fingerprint is not valid"
+        //    );
+        //}
         Order memory order = orderByAssetId[subTokenAddress][assetId];
         require(order.id != 0, "Asset not published");
 
         address seller = order.seller;
         require(seller != address(0), "Invalid address");
-        require(seller != msg.sender, "Unauthorized user");
+        require(seller != msg.sender, "Seller cannot buy asset");
         require(order.price == price, "The price is not correct");
         require(
             seller == nftRegistry.ownerOf(assetId),
             "The seller not the owner"
+        );
+        require(
+            _availableECO(msg.sender) > (price+charityFee+projectFee), 
+            "Not Enough EcoBux"
         );
 
         bytes32 orderId = order.id;
@@ -211,8 +213,6 @@ contract MarketPlace is Ownable, Pausable {
             price,
             msg.sender
         );
-
-        return true;
     }
 
     function _requireERC721(address subTokenAddress) internal view {
