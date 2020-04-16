@@ -146,6 +146,14 @@ contract('MarketPlace', (accounts) => {
             "The price is not correct"
         ) 
     });
+    it("should fail to execute order if buyer does not have enough EcoBux", async () => { 
+        // De-approve contract for all EcoBux
+        await EcoBuxInstance.approve(contractInstance.address, 0, {from: accounts[1]})
+        await truffleAssert.reverts( 
+            contractInstance.executeOrder(PanamaJungleInstance.address, ownedAllotment2, ecoPrice, {from: accounts[1]}),
+            "Not Enough EcoBux"
+        ) 
+    });
     it("should fail to execute order if seller is no longer the owner of the asset", async () => { 
         // In this test, accounts[0] and accounts[1] are corroborating
         // Approve accounts[1] to take asset

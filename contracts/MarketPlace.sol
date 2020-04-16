@@ -166,7 +166,6 @@ contract MarketPlace is Ownable, Pausable {
         require(order.id != 0, "Asset not published");
 
         address seller = order.seller;
-        require(seller != address(0), "Invalid address");
         require(seller != msg.sender, "Seller cannot buy asset");
         require(order.price == price, "The price is not correct");
         require(
