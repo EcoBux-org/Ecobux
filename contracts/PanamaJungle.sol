@@ -103,21 +103,21 @@ contract PanamaJungle is ERC721, Ownable, Pausable, GSNRecipient {
         // Take money from account before so no chance of re entry attacks
         takeEco(_msgSender(), currentPrice * _tokensDesired);
 
-        uint256[] memory contractTokens = this.ownedAllotments(address(this)); 
+        uint256[] memory contractTokens = this.ownedAllotments(address(this));
 
         require(
             contractTokens.length >= _tokensDesired,
             "Not enough available tokens!"
-        ); 
+        );
 
         for (uint256 i = 0; i < _tokensDesired; i++) {
             // Select random token from contract tokens
-            uint256 tokenId = contractTokens[random() % contractTokens.length]; 
-            nftAddress.safeTransferFrom(address(this), _to, tokenId); // Transfer token from contract to user 
+            uint256 tokenId = contractTokens[random() % contractTokens.length];
+            nftAddress.safeTransferFrom(address(this), _to, tokenId); // Transfer token from contract to user
             // Refresh the list of available allotments
             // cant use pop() because its a memory array, we just have to start from scratch
             // gas cost is negligible however
-            contractTokens = this.ownedAllotments(address(this)); 
+            contractTokens = this.ownedAllotments(address(this));
         }
     }
 

@@ -23,7 +23,6 @@ contract PanamaFuture is ERC20, Ownable, Pausable {
     // Start contract with new EcoBux address
     constructor(address _ecoBuxAddress) public ERC20("PanamaFuture", "PAF") {
         _setupDecimals(0);
-        ERC20 futureAddress = ERC20(address(this));
         ecoBuxAddress = ERC20(_ecoBuxAddress);
         currentPrice = 25; // Default to 1 ECOB per FUTURE. Changed by setCurrentPrice()
     }
@@ -37,7 +36,7 @@ contract PanamaFuture is ERC20, Ownable, Pausable {
         returns (uint256)
     {
         // Require at least current price * tokens
-        require(availableECO(msg.sender) >= _amount * currentPrice, "Not Enough EcoBux"); 
+        require(availableECO(msg.sender) >= _amount * currentPrice, "Not Enough EcoBux");
 
         // Mint tokens and sends them to the original sender
         super._mint(msg.sender, _amount);
@@ -45,7 +44,7 @@ contract PanamaFuture is ERC20, Ownable, Pausable {
         // Take money from account
         takeEco(msg.sender, currentPrice * _amount);
 
-        // Emit Transferred after Future is transferred 
+        // Emit Transferred after Future is transferred
         emit Transferred(msg.sender, _amount);
     }
 
