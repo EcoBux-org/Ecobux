@@ -12,6 +12,7 @@ import "./utils/Erc721Verifiable.sol";
 contract MarketPlace is Ownable, Pausable {
     using SafeMath for uint256;
     ERC20 public ecoBux;
+    ERC20 public ecoBuxFee;
     uint256 public projectFee;
     uint256 public charityFee;
 
@@ -21,8 +22,9 @@ contract MarketPlace is Ownable, Pausable {
         keccak256("verifyFingerprint(uint256,bytes)")
     );
 
-    constructor(address _ecoBuxAddress) public {
+    constructor(address _ecoBuxAddress, address _ecoBuxFeeAddress) public {
         ecoBux = ERC20(_ecoBuxAddress);
+        ecoBuxFee = ERC20(_ecoBuxFeeAddress);
         projectFee = 10; // Base fee of every executed order, in EcoBux
         charityFee = 10; // Base fee of every executed order, in EcoBux
     }
@@ -80,10 +82,9 @@ contract MarketPlace is Ownable, Pausable {
         address assetOwner = subToken.ownerOf(assetId);
 
         require(msg.sender == assetOwner, "Only the owner can make orders");
-        require(ecoPrice > 0, "Price should be greater than 0");
         require(
-            _availableECO(msg.sender) > (projectFee+charityFee),
-            "Owner does not have enough EcoBux to pay publication fee"
+            ecoPrice > (projectFee+charityFee),
+            "Asset price does not cover fees"
         );
         require(
             subToken.getApproved(assetId) == address(this) ||
@@ -173,7 +174,7 @@ contract MarketPlace is Ownable, Pausable {
             "The seller not the owner"
         );
         require(
-            _availableECO(msg.sender) > (price+charityFee+projectFee), 
+            _availableECO(msg.sender) >= price, 
             "Not Enough EcoBux"
         );
 
@@ -191,7 +192,7 @@ contract MarketPlace is Ownable, Pausable {
         // Transfer project fee if exists
         if (projectFee > 0) {
             require(
-                _takeEco(msg.sender, address(ecoBux), projectFee),
+                _takeEco(msg.sender, address(ecoBuxFee), projectFee),
                 "Transfering the project fee to the EcoBux owner failed"
             );
         }
@@ -238,7 +239,7 @@ contract MarketPlace is Ownable, Pausable {
         address _to,
         uint256 _amount
     ) internal returns (bool) {
-        require(_availableECO(_from) > _amount, "Not enough ECOB");
+        require(_availableECO(_from) >= _amount, "Not enough EcoBux in takeEco");
         require(
             ecoBux.transferFrom(_from, _to, _amount),
             "Transfer of EcoBux failed"

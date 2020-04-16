@@ -1,16 +1,18 @@
 const EcoBux = artifacts.require('./EcoBux.sol');
+const EcoBuxFee = artifacts.require('./EcoBuxFee.sol');
 const MarketPlace = artifacts.require('./MarketPlace.sol'); 
 const PanamaJungle = artifacts.require('./PanamaJungle.sol'); 
 const assert = require('assert')
 const truffleAssert = require('truffle-assertions');
 
 contract('MarketPlace', (accounts) => {
-    const ecoPrice = 10
+    const ecoPrice = 30
 
     beforeEach(async () => {
         EcoBuxInstance = await EcoBux.deployed()
+        EcoBuxFeeInstance = await EcoBuxFee.deployed()
         PanamaJungleInstance = await PanamaJungle.deployed(EcoBuxInstance.address)
-        contractInstance = await MarketPlace.deployed(EcoBuxInstance.address)
+        contractInstance = await MarketPlace.deployed(EcoBuxInstance.address, EcoBuxFeeInstance.address)
     })
 
     it("should create a new sell order", async () => {
@@ -51,22 +53,14 @@ contract('MarketPlace', (accounts) => {
     });
     it("should fail to create a new sell order if not owner of asset", async () => {
         await truffleAssert.reverts( 
-            contractInstance.createOrder(PanamaJungleInstance.address, ownedAllotment, 10, {from: accounts[1]}),
+            contractInstance.createOrder(PanamaJungleInstance.address, ownedAllotment, ecoPrice, {from: accounts[1]}),
             "Only the owner can make orders"
         ) 
     });
-    it("should fail to create a new sell order if price is <0", async () => {
+    it("should fail to create a new sell order if price does not cover fees", async () => {
         await truffleAssert.reverts( 
-            contractInstance.createOrder(PanamaJungleInstance.address, ownedAllotment, 0, {from: accounts[0]}),
-            "Price should be greater than 0"
-        ) 
-    });
-    it("should fail to create a new sell order if owner does not have enough EcoBux", async () => {
-        await EcoBuxInstance.approve(contractInstance.address, 0, {from: accounts[0]})
-
-        await truffleAssert.reverts( 
-            contractInstance.createOrder(PanamaJungleInstance.address, ownedAllotment, 1, {from: accounts[0]}),
-            "Owner does not have enough EcoBux to pay publication fee"
+            contractInstance.createOrder(PanamaJungleInstance.address, ownedAllotment, 20, {from: accounts[0]}),
+            "Asset price does not cover fees"
         ) 
     });
     it("should fail to create a new sell order if owner does not approve contract", async () => {
@@ -82,7 +76,7 @@ contract('MarketPlace', (accounts) => {
 
         // Make sure sell order isnt created if asset isnt approved
         await truffleAssert.reverts( 
-            contractInstance.createOrder(PanamaJungleInstance.address, ownedAllotment2, 1, {from: accounts[0]}),
+            contractInstance.createOrder(PanamaJungleInstance.address, ownedAllotment2, ecoPrice, {from: accounts[0]}),
             "The contract is not authorized to manage the asset"
         ) 
     });
@@ -152,13 +146,6 @@ contract('MarketPlace', (accounts) => {
             "The price is not correct"
         ) 
     });
-    it("should fail to execute order if buyer does not have enough EcoBux", async () => { 
-        await EcoBuxInstance.approve(contractInstance.address, 0, {from: accounts[1]})
-        await truffleAssert.reverts( 
-            contractInstance.executeOrder(PanamaJungleInstance.address, ownedAllotment2, ecoPrice, {from: accounts[1]}),
-            "Not Enough EcoBux"
-        ) 
-    });
     it("should fail to execute order if seller is no longer the owner of the asset", async () => { 
         // In this test, accounts[0] and accounts[1] are corroborating
         // Approve accounts[1] to take asset
@@ -170,5 +157,49 @@ contract('MarketPlace', (accounts) => {
             contractInstance.executeOrder(PanamaJungleInstance.address, ownedAllotment2, ecoPrice, {from: accounts[2]}),
             "The seller not the owner"
         ) 
+    });
+    it("should execute order", async () => { 
+        // Create new Sell Order
+        // Due to previous test accounts[1] now owns ownedAllotment2
+        
+        // Approve MarketPlace Contract to manage asset
+        await PanamaJungleInstance.approve(contractInstance.address, ownedAllotment2, {from: accounts[1]});
+
+        // Create order
+        const newOrder = await contractInstance.createOrder(PanamaJungleInstance.address, ownedAllotment2, ecoPrice, {from: accounts[1]});
+        truffleAssert.eventEmitted(newOrder, 'OrderCreated', (ev) => {
+            orderId = ev.orderId
+            return (
+                ev.assetId.toString(2) == ownedAllotment2.toString(2) && 
+                ev.assetOwner == accounts[1] && 
+                ev.subTokenAddress == PanamaJungleInstance.address && 
+                ev.ecoPrice == ecoPrice
+            );
+        }, 'Contract should create the correct order');
+
+
+        // Mint Ecobucks for buying order
+        mintEco = 30
+        ecob = await EcoBuxInstance.createEco(accounts[0],mintEco)
+        await EcoBuxInstance.approve(contractInstance.address, mintEco, {from: accounts[0]})
+
+        // Execute order
+        const receipt = await contractInstance.executeOrder(PanamaJungleInstance.address, ownedAllotment2, ecoPrice, {from: accounts[0]});
+        truffleAssert.eventEmitted(receipt, 'OrderSuccessful', (ev) => {
+            return (
+                ev.assetId.toString(2) == ownedAllotment2.toString(2) && 
+                ev.seller == accounts[1] && 
+                ev.subTokenAddress == PanamaJungleInstance.address && 
+                ev.totalPrice == ecoPrice &&
+                ev.buyer == accounts[0]
+            );
+        }, 'Contract should buy the correct allotment');
+        // Make sure fees are being given to correct addresses
+        const PanamaFee = await EcoBuxInstance.balanceOf(PanamaJungleInstance.address);
+        const EcoBuxFee = await EcoBuxInstance.balanceOf(EcoBuxFeeInstance.address);
+        // PanamaFee = 60 because we are buying 2 allotments @ 25 each + 10 as a executeOrder fee
+        // EcoBuxFee = 10 because the executeOrder fee
+        assert.equal(PanamaFee.toString(10), 60, "Panama Fee is incorrect")
+        assert.equal(EcoBuxFee.toString(10), 10, "EcoBux Fee is incorrect")
     });
 })
