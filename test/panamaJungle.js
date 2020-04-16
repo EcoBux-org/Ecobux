@@ -24,7 +24,87 @@ contract('PanamaJungle', (accounts) => {
         assert.equal(await contractInstance.symbol(), _symbol, "Symbol is incorrect!");
     });
 
+    it("should create all allotments", async () => {
+        var allotments = require("./utils/allotments.json");
+        allotments = allotments.slice(0,17);
+        const addon = await contractInstance.bulkCreateAllotment(allotments, {from: accounts[0]})
 
+        //console.log(addon.receipt.gasUsed)
+        truffleAssert.eventEmitted(addon, 'Transfer', (ev) => {
+          return ev.from == 0 && ev.to == contractInstance.address;
+        }, 'Contract should create the correct allotment');
+
+        // Verify generated allotment is the same
+        const allot0 = await contractInstance.allotmentDetails(0);
+        assert.equal(allot0[1][0][0].toString(10), allotments[0][0][0], "Generated allotment is not the same")
+    })
+
+    it("should fail to create allotments if not owner", async () => {
+        var allotments = require("./utils/allotments.json");
+        allotments = allotments.slice(0,17);
+        await truffleAssert.reverts( 
+            contractInstance.bulkCreateAllotment(allotments, {from: accounts[1]}),
+            "Only the owner can run this function"
+        ) 
+    })
+
+    it("should buy a random allotment", async () => {
+        const ecoMint = 25
+        let ecob = await EcoBuxInstance.createEco(accounts[0],ecoMint)
+        await EcoBuxInstance.approve(contractInstance.address, ecoMint)
+
+        const receipt = await contractInstance.buyAllotments(1, accounts[0]);
+        truffleAssert.eventEmitted(receipt, 'Transfer', (ev) => {
+          return ev.from == contractInstance.address && ev.to == accounts[0];
+        }, 'Contract should buy the correct allotment');
+    })
+
+    it("should buy multiple unique allotments", async () => {
+        const ecoMint = 175 
+        let ecob = await EcoBuxInstance.createEco(accounts[0],ecoMint)
+        await EcoBuxInstance.approve(contractInstance.address, ecoMint)
+
+        var list = []; 
+        const receipt = await contractInstance.buyAllotments(7, accounts[0], {from: accounts[0]});
+        truffleAssert.eventEmitted(receipt, 'Transfer', (ev) => {
+          list.push(ev.tokenId);
+          return ev.from == contractInstance.address && ev.to == accounts[0];
+        }, 'Contract should create the correct allotments');
+        assert.equal(list[0] != list[1] || list[1] != list[2], true, "The allotments were not unique")
+    })
+
+    it("should fail to buy an allotment if not enough ecobux", async () => {
+        await truffleAssert.reverts( 
+            contractInstance.buyAllotments(1, accounts[0], {from: accounts[1]}),
+            "Not enough available Ecobux!"
+        ) 
+    })
+
+    it("should fail to buy an allotment if not enough available allotments", async () => {
+        const ecoMint = 500 
+        let ecob = await EcoBuxInstance.createEco(accounts[0],ecoMint)
+        await EcoBuxInstance.approve(contractInstance.address, ecoMint)
+
+        await truffleAssert.reverts( 
+            contractInstance.buyAllotments(20, accounts[0], {from: accounts[0]}),
+            "Not enough available tokens!"
+        ) 
+    })
+
+    it("should return info about all owned allotments", async () => {
+        const owned = await contractInstance.ownedAllotments(accounts[0]);
+        assert.notEqual(owned, [], "The function returned an empty result")
+    })
+
+    it("should return no info about allotments if none are owned", async () => {
+        const owned = await contractInstance.ownedAllotments(accounts[4]);
+  
+        // Owned array should be empty
+        assert.equal(!owned.length, true, "The function did not return empty")
+    })
+    // TODO: GSN
+    //
+    
     it('should create a microaddon and get info', async () => {
         const price = 10
         const purchasable = 1
@@ -36,7 +116,7 @@ contract('PanamaJungle', (accounts) => {
         }, 'Contract should create the correct microAddon');
 
         var details = await contractInstance.microDetails(0);
-        assert.equal(0 == details[0] && details[1] == price && details[2] == true, true, 'The microaddon was not added correctly')
+        assert.equal(0 == details[0] && details[1] == price && details[2], true, 'The microaddon was not added correctly')
     })
 
     it('should fail to create a microaddon if not owner', async () => {
@@ -133,7 +213,6 @@ contract('PanamaJungle', (accounts) => {
     })
     
     it("should not allow contract functions if paused", async () => {
-        // Setup
         await contractInstance.pause({from: accounts[1]})
 
         await truffleAssert.reverts( 
