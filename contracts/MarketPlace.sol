@@ -28,13 +28,13 @@ contract MarketPlace is Ownable, Pausable {
     }
 
     // EVENTS
-    // event OrderCreated(
-    //     bytes32 id,
-    //     uint256 indexed allotmentId,
-    //     address indexed allotmentOwner,
-    //     address subTokenAddress,
-    //     uint256 ecoPrice
-    // );
+    event OrderCreated(
+        bytes32 id,
+        uint256 indexed allotmentId,
+        address indexed allotmentOwner,
+        address subTokenAddress,
+        uint256 ecoPrice
+    );
 
     event OrderSuccessful(
         bytes32 id,
@@ -81,10 +81,10 @@ contract MarketPlace is Ownable, Pausable {
 
         require(msg.sender == allotmentOwner, "Only the owner can make orders");
         require(ecoPrice > 0, "Price should be greater than 0");
-        // require(
-        //     _availableECO(msg.sender) > publicationFeeInWei,
-        //     "Owner does not have enough EcoBux to pay publication fee"
-        // )
+        require(
+            _availableECO(msg.sender) > (projectFee+charityFee),
+            "Owner does not have enough EcoBux to pay publication fee"
+        );
         require(
             subToken.getApproved(allotmentId) == address(this) ||
                 subToken.isApprovedForAll(allotmentOwner, address(this)),
@@ -108,13 +108,13 @@ contract MarketPlace is Ownable, Pausable {
             seller: allotmentOwner
         });
 
-        // emit OrderCreated(
-        //     orderId,
-        //     allotmentId,
-        //     allotmentOwner,
-        //     subTokenAddress,
-        //     ecoPrice
-        // );
+        emit OrderCreated(
+            orderId,
+            allotmentId,
+            allotmentOwner,
+            subTokenAddress,
+            ecoPrice
+        );
     }
 
     /** @dev Cancel existing order
