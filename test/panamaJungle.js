@@ -107,12 +107,12 @@ contract('PanamaJungle', (accounts) => {
     
     it('should create a microaddon and get info', async () => {
         const price = 10
-        const purchasable = 1
+        const buyable = 1
 
-        const addon = await contractInstance.createMicro(price, purchasable, {from: accounts[0]})
+        const addon = await contractInstance.createMicro(price, buyable, {from: accounts[0]})
 
         truffleAssert.eventEmitted(addon, 'NewAddon', (ev) => {
-          return ev.addonId == 0 && ev.price == price && ev.purchasable == true;
+          return ev.addonId == 0 && ev.price == price && ev.buyable == true;
         }, 'Contract should create the correct microAddon');
 
         var details = await contractInstance.microDetails(0);
@@ -121,36 +121,75 @@ contract('PanamaJungle', (accounts) => {
 
     it('should fail to create a microaddon if not owner', async () => {
         const price = 10
-        const purchasable = 1
+        const buyable = 1
 
         await truffleAssert.reverts( 
-            contractInstance.createMicro(price, purchasable, {from: accounts[1]}),
+            contractInstance.createMicro(price, buyable, {from: accounts[1]}),
             "Only the owner can run this function"
         ) 
     })
 
-    it('should buy a purchasable microaddon', async () => {
+    it('should buy a buyable microaddon', async () => {
         const price = 10
-        const purchasable = 1
+        const buyable = 1
+        const mintEco = 35
+        const addonId = 0
+        
+        // Mint EcoBux
+        let ecob = await ecoBuxInstance.createEco(accounts[0],mintEco)
+        await ecoBuxInstance.approve(contractInstance.address, mintEco)
 
-        let ecob = await ecoBuxInstance.createEco(accounts[0],1000)
-        await ecoBuxInstance.approve(contractInstance.address, 1000)
+        // Buy an allotment
+        const receipt = await contractInstance.buyAllotments(1, accounts[0]);
+        truffleAssert.eventEmitted(receipt, 'Transfer', (ev) => {
+          ownedAllotment = ev.tokenId;  
+          return ev.from == contractInstance.address && ev.to == accounts[0];
+        }, 'Contract should buy the correct allotment');
 
-        let addonId = await contractInstance.createMicro(price, purchasable, {from: accounts[0]})
+        // Add addon to allotment 
+        let reciept = await contractInstance.buyMicro(ownedAllotment, addonId, {from: accounts[0]})
 
-        truffleAssert.eventEmitted(addonId, 'NewAddon', (ev) => {
-            if (ev.addonId != 1 || ev.price != price || ev.purchasable !== true) return false
-
-            let addonId = contractInstance.createMicro(price, purchasable, {from: accounts[0]})
-
-            //let purchase = contractInstance.purchaseMicro(0, 1, {from: accounts[0]})
-            //truffleAssert.eventEmitted(purchase, 'EcoTransfer');
-            return true
-        });
+        truffleAssert.eventEmitted(reciept, 'addedAddon');
 
     })
 
-    it("should set a new price", async () => {
+    it('should fail to buy a microaddon if not buyable', async () => {
+        const price = 10
+        const buyable = 0
+
+        const receipt = await contractInstance.createMicro(price, buyable, {from: accounts[0]})
+        truffleAssert.eventEmitted(receipt, 'NewAddon', (ev) => {
+          addonId = ev.addonId;  
+          return ev.addonId == 1 && ev.price == price && ev.buyable == false;
+        }, 'Contract should buy the correct allotment');
+
+        await truffleAssert.reverts( 
+            contractInstance.buyMicro(0, addonId, {from: accounts[1]}),
+            "Selected microaddon does not exist or is not buyable"
+        ) 
+    })
+
+    it("should fail to buy microaddon if not enough ecobux", async () => {
+        await truffleAssert.reverts( 
+            contractInstance.buyMicro(1, 0, {from: accounts[1]}),
+            "Not enough available EcoBux!"
+        ) 
+    })
+
+    it("should fail to buy a microaddon if selected token does not exist", async () => {
+        const mintEco = 10000
+        
+        // Mint EcoBux
+        let ecob = await ecoBuxInstance.createEco(accounts[1],mintEco)
+        await ecoBuxInstance.approve(contractInstance.address, mintEco, {from: accounts[1]})
+
+        await truffleAssert.reverts( 
+            contractInstance.buyMicro(5318008, 0, {from: accounts[1]}),
+            "Selected Token does not exist"
+        ) 
+    })
+
+    it("should set a new allotment price", async () => {
         // Set new price
         const newPrice = 1000;
         const price = await contractInstance.setCurrentPrice(newPrice);
