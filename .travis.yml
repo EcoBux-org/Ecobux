@@ -9,7 +9,7 @@ install:
   - set -e # Exit immediately if a command exits with a non-zero status
  
 script:
-  - npx run test # Run test suite and linter
+  - npm run test # Run test suite and linter
   - kill -9 $(lsof -t -i:8545) # Kill ganache-cli
   - npx truffle run coverage # Get coverage results
   - cat coverage/lcov.info | npx coveralls # Push coverage results to coveralls
