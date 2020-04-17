@@ -47,7 +47,7 @@ contract PanamaJungle is ERC721, Ownable, Pausable, GSNRecipient {
     event NewAddon(uint256 addonId, uint16 price, bool buyable);
 
     // Event emitted when a microAddon is added to an allotment
-    event addedAddon(
+    event AddedAddon(
             uint256 tokenId,
             uint16 addonId
     );
@@ -79,7 +79,6 @@ contract PanamaJungle is ERC721, Ownable, Pausable, GSNRecipient {
         onlyOwner
         returns (bool success)
     {
-        uint16[] memory addons;
         // For each allotment in initial array
         for (uint256 i = 0; i < _allotments.length; i++) {
             _createAllotment(_allotments[i]);
@@ -166,7 +165,7 @@ contract PanamaJungle is ERC721, Ownable, Pausable, GSNRecipient {
 
         allotments[tokenId].addons.push(addonId); // Add addonId to token array
 
-        emit addedAddon(tokenId, addonId);
+        emit AddedAddon(tokenId, addonId);
 
         return allotments[tokenId].addons;
     }
@@ -248,27 +247,6 @@ contract PanamaJungle is ERC721, Ownable, Pausable, GSNRecipient {
         return _approveRelayedCall();
     }
 
-    // Relay Requires this func even if unused
-    // GSN Func
-    // TODO: Add stuff here
-    function _preRelayedCall(bytes memory context) internal override returns (bytes32) {}
-
-    function _postRelayedCall(
-        bytes memory context,
-        bool,
-        uint256 actualCharge,
-        bytes32
-    ) internal override {}
-
-    // Needed by Openzeppelin GSN
-    function _msgSender() internal view override(Context, GSNRecipient) returns (address payable) {
-        return GSNRecipient._msgSender();
-    }
-
-    function _msgData() internal view override(Context, GSNRecipient) returns (bytes memory) {
-        return GSNRecipient._msgData();
-    }
-
     /** @dev Function to update _currentPrice
       * @param _currentPrice new price of each allotment
      */
@@ -282,6 +260,31 @@ contract PanamaJungle is ERC721, Ownable, Pausable, GSNRecipient {
      */
     function setEcoBuxAddress(address _ecoBuxAddress) public onlyOwner {
         ecoBuxAddress = ERC20(_ecoBuxAddress);
+    }
+
+    // Relay Requires this func even if unused
+    // GSN Func
+    // TODO: Add stuff here
+    function _preRelayedCall(bytes memory context) internal override returns (bytes32) {
+        // TODO
+    }
+
+    function _postRelayedCall(
+        bytes memory context,
+        bool,
+        uint256 actualCharge,
+        bytes32
+    ) internal override {
+        // TODO
+    }
+
+    // Needed by Openzeppelin GSN
+    function _msgSender() internal view override(Context, GSNRecipient) returns (address payable) {
+        return GSNRecipient._msgSender();
+    }
+
+    function _msgData() internal view override(Context, GSNRecipient) returns (bytes memory) {
+        return GSNRecipient._msgData();
     }
 
     /** @dev Function to verify user has enough ecobux to spend

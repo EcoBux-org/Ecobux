@@ -8,6 +8,7 @@ import "@openzeppelin/contracts/GSN/GSNRecipient.sol";
 import "./utils/Ownable.sol";
 import "./utils/Pausable.sol";
 
+
 contract PanamaFuture is ERC20, Ownable, Pausable {
     using SafeMath for uint256;
 

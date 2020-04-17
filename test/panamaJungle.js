@@ -42,10 +42,10 @@ contract('PanamaJungle', (accounts) => {
     it("should fail to create allotments if not owner", async () => {
         var allotments = require("./utils/allotments.json");
         allotments = allotments.slice(0,17);
-        await truffleAssert.reverts( 
+        await truffleAssert.reverts(
             contractInstance.bulkCreateAllotment(allotments, {from: accounts[1]}),
             "Only the owner can run this function"
-        ) 
+        )
     })
 
     it("should buy a random allotment", async () => {
@@ -60,11 +60,11 @@ contract('PanamaJungle', (accounts) => {
     })
 
     it("should buy multiple unique allotments", async () => {
-        const ecoMint = 175 
+        const ecoMint = 175
         let ecob = await EcoBuxInstance.createEco(accounts[0],ecoMint)
         await EcoBuxInstance.approve(contractInstance.address, ecoMint)
 
-        var list = []; 
+        var list = [];
         const receipt = await contractInstance.buyAllotments(7, accounts[0], {from: accounts[0]});
         truffleAssert.eventEmitted(receipt, 'Transfer', (ev) => {
           list.push(ev.tokenId);
@@ -74,21 +74,21 @@ contract('PanamaJungle', (accounts) => {
     })
 
     it("should fail to buy an allotment if not enough ecobux", async () => {
-        await truffleAssert.reverts( 
+        await truffleAssert.reverts(
             contractInstance.buyAllotments(1, accounts[0], {from: accounts[1]}),
             "Not enough available Ecobux!"
-        ) 
+        )
     })
 
     it("should fail to buy an allotment if not enough available allotments", async () => {
-        const ecoMint = 500 
+        const ecoMint = 500
         let ecob = await EcoBuxInstance.createEco(accounts[0],ecoMint)
         await EcoBuxInstance.approve(contractInstance.address, ecoMint)
 
-        await truffleAssert.reverts( 
+        await truffleAssert.reverts(
             contractInstance.buyAllotments(20, accounts[0], {from: accounts[0]}),
             "Not enough available tokens!"
-        ) 
+        )
     })
 
     it("should return info about all owned allotments", async () => {
@@ -98,13 +98,13 @@ contract('PanamaJungle', (accounts) => {
 
     it("should return no info about allotments if none are owned", async () => {
         const owned = await contractInstance.ownedAllotments(accounts[4]);
-  
+
         // Owned array should be empty
         assert.equal(!owned.length, true, "The function did not return empty")
     })
     // TODO: GSN
     //
-    
+
     it('should create a microaddon and get info', async () => {
         const price = 10
         const buyable = 1
@@ -123,10 +123,10 @@ contract('PanamaJungle', (accounts) => {
         const price = 10
         const buyable = 1
 
-        await truffleAssert.reverts( 
+        await truffleAssert.reverts(
             contractInstance.createMicro(price, buyable, {from: accounts[1]}),
             "Only the owner can run this function"
-        ) 
+        )
     })
 
     it('should buy a buyable microaddon', async () => {
@@ -134,7 +134,7 @@ contract('PanamaJungle', (accounts) => {
         const buyable = 1
         const mintEco = 35
         const addonId = 0
-        
+
         // Mint EcoBux
         let ecob = await ecoBuxInstance.createEco(accounts[0],mintEco)
         await ecoBuxInstance.approve(contractInstance.address, mintEco)
@@ -142,14 +142,14 @@ contract('PanamaJungle', (accounts) => {
         // Buy an allotment
         const receipt = await contractInstance.buyAllotments(1, accounts[0]);
         truffleAssert.eventEmitted(receipt, 'Transfer', (ev) => {
-          ownedAllotment = ev.tokenId;  
+          ownedAllotment = ev.tokenId;
           return ev.from == contractInstance.address && ev.to == accounts[0];
         }, 'Contract should buy the correct allotment');
 
-        // Add addon to allotment 
+        // Add addon to allotment
         let reciept = await contractInstance.buyMicro(ownedAllotment, addonId, {from: accounts[0]})
 
-        truffleAssert.eventEmitted(reciept, 'addedAddon');
+        truffleAssert.eventEmitted(reciept, 'AddedAddon');
 
     })
 
@@ -159,34 +159,34 @@ contract('PanamaJungle', (accounts) => {
 
         const receipt = await contractInstance.createMicro(price, buyable, {from: accounts[0]})
         truffleAssert.eventEmitted(receipt, 'NewAddon', (ev) => {
-          addonId = ev.addonId;  
+          addonId = ev.addonId;
           return ev.addonId == 1 && ev.price == price && ev.buyable == false;
         }, 'Contract should buy the correct allotment');
 
-        await truffleAssert.reverts( 
+        await truffleAssert.reverts(
             contractInstance.buyMicro(0, addonId, {from: accounts[1]}),
             "Selected microaddon does not exist or is not buyable"
-        ) 
+        )
     })
 
     it("should fail to buy microaddon if not enough ecobux", async () => {
-        await truffleAssert.reverts( 
+        await truffleAssert.reverts(
             contractInstance.buyMicro(1, 0, {from: accounts[1]}),
             "Not enough available EcoBux!"
-        ) 
+        )
     })
 
     it("should fail to buy a microaddon if selected token does not exist", async () => {
         const mintEco = 10000
-        
+
         // Mint EcoBux
         let ecob = await ecoBuxInstance.createEco(accounts[1],mintEco)
         await ecoBuxInstance.approve(contractInstance.address, mintEco, {from: accounts[1]})
 
-        await truffleAssert.reverts( 
+        await truffleAssert.reverts(
             contractInstance.buyMicro(5318008, 0, {from: accounts[1]}),
             "Selected Token does not exist"
-        ) 
+        )
     })
 
     it("should set a new allotment price", async () => {
@@ -201,19 +201,19 @@ contract('PanamaJungle', (accounts) => {
         // Set new price
         const newPrice = 1000;
         // Check if price was not actually changed
-        await truffleAssert.reverts( 
+        await truffleAssert.reverts(
             contractInstance.setCurrentPrice(newPrice, {from: accounts[1]}),
             "Only the owner can run this function"
-        ) 
+        )
     })
 
     it("should update EcoBux address", async () => {
         const addr = await contractInstance.setEcoBuxAddress(accounts[3])
         assert.equal(await contractInstance.ecoBuxAddress.call(), accounts[3], "EcoBux address was not updated")
     })
-    
+
     it("should fail to update EcoBux address if not owner", async () => {
-        await truffleAssert.reverts( 
+        await truffleAssert.reverts(
             contractInstance.setEcoBuxAddress(accounts[3], {from: accounts[2]}),
             "Only the owner can run this function"
         )
@@ -224,47 +224,47 @@ contract('PanamaJungle', (accounts) => {
         truffleAssert.eventEmitted(owner, 'OwnershipTransferred', (ev) => {
           return true
         })
-        await truffleAssert.reverts( 
+        await truffleAssert.reverts(
             contractInstance.transferOwnership(accounts[2], {from: accounts[2]}),
             "Only the owner can run this function"
         )
     })
-  
+
     it("should fail to transfer ownership if to 0 address", async () => {
-        await truffleAssert.reverts( 
+        await truffleAssert.reverts(
             contractInstance.transferOwnership('0x0000000000000000000000000000000000000000', {from: accounts[1]}),
             "Ownership cannot be transferred to zero address"
         )
     })
-    
+
     it("should fail to transfer ownership if not owner", async () => {
-        await truffleAssert.reverts( 
+        await truffleAssert.reverts(
             contractInstance.transferOwnership(accounts[2], {from: accounts[2]}),
             "Only the owner can run this function"
         )
     })
 
     it("should fail to relinquish ownership if not owner", async () => {
-        await truffleAssert.reverts( 
+        await truffleAssert.reverts(
             contractInstance.renounceOwnership({from: accounts[2]}),
             "Only the owner can run this function"
         )
     })
-    
+
     it("should not allow contract functions if paused", async () => {
         await contractInstance.pause({from: accounts[1]})
 
-        await truffleAssert.reverts( 
+        await truffleAssert.reverts(
             contractInstance.buyAllotments(0, accounts[0], {from: accounts[0]}),
             "Function cannot be used while contract is paused"
         )
-        
+
     })
     it("should only allow contract functions if not paused", async () => {
         // BUG: Contract should already be unpaused but it isnt due to prev test
         // Fix: manually unpause at start of this test
         await contractInstance.unpause({from: accounts[1]}),
-        await truffleAssert.reverts( 
+        await truffleAssert.reverts(
             contractInstance.unpause({from: accounts[1]}),
             "Function cannot be used while contract is not paused"
         )
@@ -277,7 +277,7 @@ contract('PanamaJungle', (accounts) => {
           return true
         })
 
-        await truffleAssert.reverts( 
+        await truffleAssert.reverts(
             contractInstance.transferOwnership(accounts[1], {from: accounts[0]}),
             "Only the owner can run this function"
         )

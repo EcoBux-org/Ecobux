@@ -154,12 +154,6 @@ contract MarketPlace {
 
         ERC721Verifiable nftRegistry = ERC721Verifiable(subTokenAddress);
 
-        //if (nftRegistry.supportsInterface(INTERFACEID_VALIDATEFINGERPRINT)) {
-        //    require(
-        //        nftRegistry.verifyFingerprint(assetId, fingerprint),
-        //        "The asset fingerprint is not valid"
-        //    );
-        //}
         Order memory order = orderByAssetId[subTokenAddress][assetId];
         require(order.id != 0, "Asset not published");
 
@@ -171,7 +165,7 @@ contract MarketPlace {
             "The seller not the owner"
         );
         require(
-            _availableECO(msg.sender) >= price, 
+            _availableECO(msg.sender) >= price,
             "Not Enough EcoBux"
         );
 
