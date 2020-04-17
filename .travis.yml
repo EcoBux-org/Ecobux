@@ -12,16 +12,15 @@ matrix:
  
 install:
   - npm install
-  - npm install -g truffle 
   - npx ganache-cli --gasLimit 8000000 2> /dev/null 1> /dev/null & 
  
 script:
   - sleep 5 # to make sure ganache-cli is up and running before compiling
   - set -e
   - rm -rf build
-  - truffle compile
-  - truffle migrate --reset --network development
-  - truffle test
+  - npx truffle compile
+  - npx truffle migrate --reset --network development
+  - npx truffle test
   - kill -9 $(lsof -t -i:8545)
-  - truffle run coverage
+  - npx truffle run coverage
   - cat coverage/lcov.info | npx coveralls
