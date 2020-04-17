@@ -6,6 +6,7 @@ pragma solidity >=0.6.0;
  * @dev The Ownable contract has an owner address, and provides basic authorization control
  * functions, this simplifies the implementation of "user permissions".
 */
+// solhint-disable-next-line
 abstract contract Ownable {
 
     address payable public owner;

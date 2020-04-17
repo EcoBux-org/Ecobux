@@ -5,6 +5,7 @@ pragma solidity >=0.6.0;
  * @title ERC20
  * @dev The ERC20 interface provides simple interfacing with ecoBucks
 */
+// solhint-disable-next-line
 abstract contract ERC20 {
     function balanceOf(address tokenOwner) public view virtual returns (uint balance);
     function allowance(address tokenOwner, address spender) public view virtual returns (uint remaining);

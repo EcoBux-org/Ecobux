@@ -6,6 +6,7 @@ import "./Ownable.sol";
  * @title Pausable
  * @dev Base contract which allows children to implement an emergency stop mechanism.
  */
+// solhint-disable-next-line
 abstract contract Pausable is Ownable {
 
     event Pause();

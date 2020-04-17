@@ -23,7 +23,7 @@
   "scripts": {
     "lint": "npx solhint contracts/**/*.sol",
     "gas": "npx ganache-cli --gasLimit 8000000 2> /dev/null 1> /dev/null &",
-    "test": "npx truffle test",
+    "test": "npx truffle test && npx solhint contracts/**/*.sol",
     "coverage": "npx truffle run coverage"
   },
   "repository": {
