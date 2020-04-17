@@ -51,6 +51,12 @@ contract('MarketPlace', (accounts) => {
             );
         }, 'Contract should create the correct order');
     });
+    it("should fail to create a new sell order if subTokenAddress is not ERC721", async () => {
+        await truffleAssert.reverts( 
+            contractInstance.createOrder(accounts[1], ownedAllotment, ecoPrice, {from: accounts[1]}),
+            "Address must be a contract"
+        ) 
+    });
     it("should fail to create a new sell order if not owner of asset", async () => {
         await truffleAssert.reverts( 
             contractInstance.createOrder(PanamaJungleInstance.address, ownedAllotment, ecoPrice, {from: accounts[1]}),

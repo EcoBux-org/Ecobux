@@ -2,14 +2,12 @@ pragma solidity ^0.6.0;
 
 // Import OpenZeppelin's SafeMath Implementation
 import "@openzeppelin/contracts/math/SafeMath.sol";
-import "./utils/Ownable.sol";
-import "./utils/Pausable.sol";
 import "./utils/Erc20.sol";
 import "./utils/Erc721.sol";
 import "./utils/Erc721Verifiable.sol";
 
 
-contract MarketPlace is Ownable, Pausable {
+contract MarketPlace {
     using SafeMath for uint256;
     ERC20 public ecoBux;
     ERC20 public ecoBuxFee;
@@ -127,7 +125,7 @@ contract MarketPlace is Ownable, Pausable {
 
         require(order.id != 0, "Asset not published");
         require(
-            order.seller == msg.sender || msg.sender == owner,
+            order.seller == msg.sender,
             "Unauthorized user"
         );
 
