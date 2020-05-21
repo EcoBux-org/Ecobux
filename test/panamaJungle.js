@@ -48,6 +48,20 @@ contract('PanamaJungle', (accounts) => {
         )
     })
 
+    it("should buy multiple unique allotments", async () => {
+        const ecoMint = 175
+        let ecob = await EcoBuxInstance.createEco(accounts[0],ecoMint)
+        await EcoBuxInstance.approve(contractInstance.address, ecoMint)
+
+        list = [];
+        const receipt = await contractInstance.buyAllotments(7, accounts[0], {from: accounts[0]});
+        truffleAssert.eventEmitted(receipt, 'Transfer', (ev) => {
+          list.push(ev.tokenId);
+          return ev.from == contractInstance.address && ev.to == accounts[0];
+        }, 'Contract should create the correct allotments');
+        assert.equal(list[0] != list[1] || list[1] != list[2], true, "The allotments were not unique")
+    })
+
     it("should buy a random allotment", async () => {
         const ecoMint = 25
         let ecob = await EcoBuxInstance.createEco(accounts[0],ecoMint)
@@ -55,22 +69,9 @@ contract('PanamaJungle', (accounts) => {
 
         const receipt = await contractInstance.buyAllotments(1, accounts[0]);
         truffleAssert.eventEmitted(receipt, 'Transfer', (ev) => {
-          return ev.from == contractInstance.address && ev.to == accounts[0];
-        }, 'Contract should buy the correct allotment');
-    })
-
-    it("should buy multiple unique allotments", async () => {
-        const ecoMint = 175
-        let ecob = await EcoBuxInstance.createEco(accounts[0],ecoMint)
-        await EcoBuxInstance.approve(contractInstance.address, ecoMint)
-
-        var list = [];
-        const receipt = await contractInstance.buyAllotments(7, accounts[0], {from: accounts[0]});
-        truffleAssert.eventEmitted(receipt, 'Transfer', (ev) => {
           list.push(ev.tokenId);
           return ev.from == contractInstance.address && ev.to == accounts[0];
-        }, 'Contract should create the correct allotments');
-        assert.equal(list[0] != list[1] || list[1] != list[2], true, "The allotments were not unique")
+        }, 'Contract should buy the correct allotment');
     })
 
     it("should fail to buy an allotment if not enough ecobux", async () => {
@@ -93,7 +94,7 @@ contract('PanamaJungle', (accounts) => {
 
     it("should return info about all owned allotments", async () => {
         const owned = await contractInstance.ownedAllotments(accounts[0]);
-        assert.notEqual(owned, [], "The function returned an empty result")
+        assert.notEqual(owned.sort(), list.sort(), "The function returned an empty result")
     })
 
     it("should return no info about allotments if none are owned", async () => {
