@@ -18,7 +18,7 @@ contract PanamaJungle is ERC721, Ownable, Pausable, GSNRecipient {
     // This struct will be used to represent one allotment of land
     struct Allotment {
         // Array of lat/lng points to represent the boundaries of a point.
-        uint24[2][5] geoMap;
+        uint16[2][5] geoMap;
         // Array of microaddons for each allotment
         uint16[] addons;
     }
@@ -39,7 +39,7 @@ contract PanamaJungle is ERC721, Ownable, Pausable, GSNRecipient {
     event Birth(
         address owner,
         uint256 allotmentId,
-        uint24[2][5] geoMap,
+        uint16[2][5] geoMap,
         uint16[] addons
     );
 
@@ -69,12 +69,12 @@ contract PanamaJungle is ERC721, Ownable, Pausable, GSNRecipient {
    /** @dev Function to group create allotments
      * @param _allotments an array of arrays of points for creating each allotment bounds
      * Each lat lng point converts to having six decimal points, about 4 inches of precision.
-     * They are stored compressed in uint24 to save space
+     * They are stored compressed in uint16 to save space
      * And solidity does not handle fixed points well
      * (precision is not accuracy, note https://gis.stackexchange.com/a/8674 )
      * @return success bool if the allotment generation was successful
      **/
-    function bulkCreateAllotment(uint24[2][5][17] calldata _allotments)
+    function bulkCreateAllotment(uint16[2][5][17] calldata _allotments)
         external
         onlyOwner
         returns (bool success)
@@ -207,7 +207,7 @@ contract PanamaJungle is ERC721, Ownable, Pausable, GSNRecipient {
         view
         returns (
             uint256,
-            uint24[2][5] memory,
+            uint16[2][5] memory,
             uint16[] memory
         )
     {
@@ -321,7 +321,7 @@ contract PanamaJungle is ERC721, Ownable, Pausable, GSNRecipient {
         return randomNum;
     }
 
-    function _createAllotment(uint24[2][5] memory _allotment) internal {
+    function _createAllotment(uint16[2][5] memory _allotment) internal {
         uint16[] memory addons;
         // Create new struct containing geopoints and an empty array of addons
         Allotment memory newAllotment = Allotment({
