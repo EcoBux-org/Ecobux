@@ -9,7 +9,7 @@ import "./utils/Ownable.sol";
 import "./utils/Pausable.sol";
 
 
-contract PanamaFuture is ERC20, Ownable, Pausable {
+contract PanamaFuture is ERC20, Ownable, Pausable, GSNRecipient {
     using SafeMath for uint256;
 
     uint256 public currentPrice;
@@ -37,16 +37,33 @@ contract PanamaFuture is ERC20, Ownable, Pausable {
         returns (uint256)
     {
         // Require at least current price * tokens
-        require(availableECO(msg.sender) >= _amount * currentPrice, "Not Enough EcoBux");
+        require(availableECO(_msgSender()) >= _amount * currentPrice, "Not Enough EcoBux");
 
         // Mint tokens and sends them to the original sender
-        super._mint(msg.sender, _amount);
+        super._mint(_msgSender(), _amount);
 
         // Take money from account
-        takeEco(msg.sender, currentPrice * _amount);
+        takeEco(_msgSender(), currentPrice * _amount);
 
         // Emit Transferred after Future is transferred
-        emit Transferred(msg.sender, _amount);
+        emit Transferred(_msgSender(), _amount);
+    }
+
+    // Relay Functions to allow users to avoid needing a wallet
+    // GSN func
+    // TODO: LIMIT USE OF THIS; ANY USER CAN DRAIN
+    function acceptRelayedCall(
+        address relay,
+        address from,
+        bytes calldata encodedFunction,
+        uint256 transactionFee,
+        uint256 gasPrice,
+        uint256 gasLimit,
+        uint256 nonce,
+        bytes calldata approvalData,
+        uint256 maxPossibleCharge
+    ) external view override returns (uint256, bytes memory) {
+        return _approveRelayedCall();
     }
 
     /** @dev Function to update _currentPrice
@@ -61,6 +78,32 @@ contract PanamaFuture is ERC20, Ownable, Pausable {
      */
     function setEcoBuxAddress(address _ecoBuxAddress) public onlyOwner {
         ecoBuxAddress = ERC20(_ecoBuxAddress);
+    }
+
+    // Relay Requires this func even if unused
+    // GSN Func
+    // TODO: Add stuff here
+    function _preRelayedCall(bytes memory context) internal override returns (bytes32) {
+        // TODO
+    }
+
+    function _postRelayedCall(
+        bytes memory context,
+        bool,
+        uint256 actualCharge,
+        bytes32
+    ) internal override {
+        // TODO
+    }
+
+
+    // Needed by Openzeppelin GSN
+    function _msgSender() internal view override(Context, GSNRecipient) returns (address payable) {
+        return GSNRecipient._msgSender();
+    }
+
+    function _msgData() internal view override(Context, GSNRecipient) returns (bytes memory) {
+        return GSNRecipient._msgData();
     }
 
     /** @dev Function to take EcoBux from user and transfers it to contract
