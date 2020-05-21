@@ -5,6 +5,9 @@ const EcoBux = artifacts.require('./EcoBux.sol')
 const assert = require('assert')
 const assertRevert = require('./utils/assertRevert').assertRevert;
 const truffleAssert = require('truffle-assertions');
+const { expectEvent } = require('@openzeppelin/test-helpers');
+const gsn = require('@openzeppelin/gsn-helpers');
+
 let contractInstance
 let ecoBuxInstance
 
@@ -12,6 +15,7 @@ contract('PanamaJungle', (accounts) => {
     beforeEach(async () => {
         ecoBuxInstance = await EcoBux.deployed()
         contractInstance = await PanamaJungle.deployed(ecoBuxInstance.address)
+        await gsn.fundRecipient(web3, { recipient: contractInstance.address });
     })
     const _name = "PanamaJungle";
     const _symbol = "PAJ";
@@ -73,6 +77,26 @@ contract('PanamaJungle', (accounts) => {
         assert.equal(list[0] != list[1] || list[1] != list[2], true, "The allotments were not unique")
     })
 
+    it("should use the GSN to buy multiple unique allotments", async () => {
+        const ecoMint = 175
+        let ecob = await EcoBuxInstance.createEco(accounts[0],ecoMint)
+        await EcoBuxInstance.approve(contractInstance.address, ecoMint)
+
+        // Test if GSN is working by making sure no eth was taken out of account
+        var startEth = await web3.eth.getBalance(accounts[0])
+
+        var list = [];
+        const receipt = await contractInstance.buyAllotments(7, accounts[0], {from: accounts[0], useGSN: true});
+        truffleAssert.eventEmitted(receipt, 'Transfer', (ev) => {
+          list.push(ev.tokenId);
+          return ev.from == contractInstance.address && ev.to == accounts[0];
+        }, 'Contract should create the correct allotments');
+
+        console.log(await contractInstance.getHubAddr())
+
+        assert.equal(startEth, await web3.eth.getBalance(accounts[0]), "GSN did not take gas fees")
+    })
+
     it("should fail to buy an allotment if not enough ecobux", async () => {
         await truffleAssert.reverts(
             contractInstance.buyAllotments(1, accounts[0], {from: accounts[1]}),
@@ -92,6 +116,7 @@ contract('PanamaJungle', (accounts) => {
     })
 
     it("should return info about all owned allotments", async () => {
+        // TODO: Test does not actually check if allotments returned are OWNED, just the result is not NULL.
         const owned = await contractInstance.ownedAllotments(accounts[0]);
         assert.notEqual(owned, [], "The function returned an empty result")
     })
