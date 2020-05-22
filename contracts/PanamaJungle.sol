@@ -74,7 +74,7 @@ contract PanamaJungle is ERC721, Ownable, Pausable, GSNRecipient {
      * (precision is not accuracy, note https://gis.stackexchange.com/a/8674 )
      * @return success bool if the allotment generation was successful
      **/
-    function bulkCreateAllotment(uint16[2][5][17] calldata _allotments)
+    function bulkCreateAllotment(uint16[2][5][] calldata _allotments)
         external
         onlyOwner
         returns (bool success)

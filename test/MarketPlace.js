@@ -24,7 +24,7 @@ contract('MarketPlace', (accounts) => {
 
         // Create Allotments
         var allotments = require("./utils/allotments.json");
-        allotments = allotments.slice(0,17);
+        allotments = allotments.slice(0,23);
         const addon = await PanamaJungleInstance.bulkCreateAllotment(allotments, {from: accounts[0]})
         truffleAssert.eventEmitted(addon, 'Transfer', (ev) => {
             return ev.from == 0 && ev.to == PanamaJungleInstance.address;

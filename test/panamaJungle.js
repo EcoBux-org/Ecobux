@@ -5,8 +5,10 @@ const EcoBux = artifacts.require('./EcoBux.sol')
 const assert = require('assert')
 const assertRevert = require('./utils/assertRevert').assertRevert;
 const truffleAssert = require('truffle-assertions');
+
 let contractInstance
 let ecoBuxInstance
+var allotments = require("./utils/allotments.json");
 
 contract('PanamaJungle', (accounts) => {
     beforeEach(async () => {
@@ -25,9 +27,8 @@ contract('PanamaJungle', (accounts) => {
     });
 
     it("should create all allotments", async () => {
-        var allotments = require("./utils/allotments.json");
-        allotments = allotments.slice(0,17);
-        const addon = await contractInstance.bulkCreateAllotment(allotments, {from: accounts[0]})
+        nAllotments = allotments.slice(0,23);
+        const addon = await contractInstance.bulkCreateAllotment(nAllotments, {from: accounts[0]})
 
         //console.log(addon.receipt.gasUsed)
         truffleAssert.eventEmitted(addon, 'Transfer', (ev) => {
@@ -40,10 +41,9 @@ contract('PanamaJungle', (accounts) => {
     })
 
     it("should fail to create allotments if not owner", async () => {
-        var allotments = require("./utils/allotments.json");
-        allotments = allotments.slice(0,17);
+        var nAllotments = allotments.slice(0,9);
         await truffleAssert.reverts(
-            contractInstance.bulkCreateAllotment(allotments, {from: accounts[1]}),
+            contractInstance.bulkCreateAllotment(nAllotments, {from: accounts[1]}),
             "Only the owner can run this function"
         )
     })
