@@ -3,7 +3,7 @@ node_js:
   - 10
 
 install:
-  - npm install # Install npm packages
+  - npm ci # Install npm packages
   - npx ganache-cli --gasLimit 8000000 2> /dev/null 1> /dev/null & 
   - sleep 5 # to make sure ganache-cli is up and running before compiling
   - set -e # Exit immediately if a command exits with a non-zero status
