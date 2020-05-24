@@ -4,8 +4,7 @@ node_js:
 
 install:
   - npm ci # Install npm packages
-  - npx ganache-cli --gasLimit 8000000 2> /dev/null 1> /dev/null & 
-  - sleep 5 # to make sure ganache-cli is up and running before compiling
+  - npx ganache-cli --gasLimit 8000000 2> /dev/null 1> /dev/null & # Start local blockchain and pipe all output to NULL
   - set -e # Exit immediately if a command exits with a non-zero status
  
 script:
