@@ -28,7 +28,7 @@
   "scripts": {
     "lint": "npx solhint contracts/**/*.sol",
     "gas": "npx ganache-cli --gasLimit 8000000 2> /dev/null 1> /dev/null &",
-    "test": "npx truffle test && npx solhint contracts/**/*.sol",
+    "test": "npx oz compile && npx mocha test --exit && npx solhint contracts/**/*.sol",
     "coverage": "npx truffle run coverage"
   },
   "repository": {
@@ -43,5 +43,5 @@
   "bugs": {
     "url": "https://github.com/Watt3r/Ecobux/issues"
   },
-  "homepage": "https://github.com/Watt3r/Ecobux#readme"
+  "homepage": "https://ecobux.org"
 }
