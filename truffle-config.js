@@ -1,5 +1,5 @@
 module.exports = {
-  plugins: ["solidity-coverage"],
+  // plugins: ["solidity-coverage"],
   networks: {
     // Dev env
     development: {

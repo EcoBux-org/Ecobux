@@ -18,6 +18,7 @@ const [admin, user, user2] = accounts;
 
 // Start test block
 describe('PanamaJungle', function() {
+  this.timeout(15000);
   beforeEach(async function() {
     // Deploy a new PanamaJungle contract for each test
     EcoBuxInstance = await EcoBux.new({from: admin});
