@@ -40,6 +40,7 @@ describe('PanamaJungle', function() {
   context('Allotment Creation Functions', function() {
     beforeEach(async function() {
       // Fund contracts to cover gas cost
+      await gsn.fundRecipient(web3, {recipient: EcoBuxInstance.address});
       await gsn.fundRecipient(web3, {recipient: this.contract.address});
 
       // Create allotments
@@ -77,14 +78,14 @@ describe('PanamaJungle', function() {
       );
     });
 
-    it('buy allotmnet with GSN', async function() {
+    it('buy allotment with GSN', async function() {
+      const startEth = await web3.eth.getBalance(user);
       const ecoMint = 25;
       await EcoBuxInstance.createEco(user, ecoMint, {from: admin});
       await EcoBuxInstance.approve(
           this.contract.address, ecoMint,
-          {from: user},
+          {from: user, useGSN: true},
       );
-      const startEth = await web3.eth.getBalance(user);
       await expect((await EcoBuxInstance.allowance(user, this.contract.address))
           .toString()).to.equal(ecoMint.toString());
 
@@ -103,14 +104,14 @@ describe('PanamaJungle', function() {
           .toString()).to.equal(startEth);
     });
 
-    it('buy multiple allotmnet', async function() {
+    it('buy multiple allotmnets', async function() {
+      const startEth = await web3.eth.getBalance(user);
       const ecoMint = 75;
       await EcoBuxInstance.createEco(user, ecoMint, {from: admin});
       await EcoBuxInstance.approve(
           this.contract.address, ecoMint,
-          {from: user},
+          {from: user, useGSN: true},
       );
-      const startEth = await web3.eth.getBalance(user);
       await expect((await EcoBuxInstance.allowance(user, this.contract.address))
           .toString()).to.equal(ecoMint.toString());
 

@@ -1,12 +1,9 @@
 const {accounts, contract, web3} = require('@openzeppelin/test-environment');
 const {
-  expectEvent,
+  // expectEvent,
   expectRevert,
-  constants,
 } = require('@openzeppelin/test-helpers');
-const gsn = require('@openzeppelin/gsn-helpers');
 const {expect} = require('chai');
-const {ZERO_ADDRESS} = constants;
 
 // Load compiled artifacts
 const EcoBux = contract.fromArtifact('EcoBux');
