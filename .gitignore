@@ -6,8 +6,9 @@ yarn-debug.log*
 yarn-error.log*
 lerna-debug.log*
 
-# Openzeppelin Config files
-.openzeppelin
+# OpenZeppelin
+.openzeppelin/dev-*.json
+.openzeppelin/.session
 
 # Diagnostic reports (https://nodejs.org/api/report.html)
 report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json

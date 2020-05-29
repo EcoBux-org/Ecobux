@@ -1,5 +1,5 @@
 module.exports = {
-  plugins: ["solidity-coverage"],
+  // plugins: ["solidity-coverage"],
   networks: {
     // Dev env
     development: {
@@ -26,7 +26,7 @@ module.exports = {
   // Configure your compilers
   compilers: {
     solc: {
-      version: "0.6.6",    
+      version: "0.6.8",    
     }
   }
 }
