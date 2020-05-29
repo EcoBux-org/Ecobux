@@ -4,11 +4,11 @@ node_js:
 
 install:
   - npm ci # Install npm packages
-  - npx ganache-cli --gasLimit 8000000 2> /dev/null 1> /dev/null & 
+    #  - npx ganache-cli --gasLimit 8000000 2> /dev/null 1> /dev/null & 
   - set -e # Exit immediately if a command exits with a non-zero status
  
 script:
   - npm run test # Run test suite and linter
-  - kill -9 $(lsof -t -i:8545) # Kill ganache-cli
+    #  - kill -9 $(lsof -t -i:8545) # Kill ganache-cli
     #  - npx truffle run coverage # Get coverage results
     #  - cat coverage/lcov.info | npx coveralls # Push coverage results to coveralls
