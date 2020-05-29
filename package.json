@@ -20,13 +20,15 @@
     "eslint": "^7.1.0",
     "eslint-config-google": "^0.14.0",
     "ganache-cli": "^6.9.1",
+    "husky": "^4.2.5",
     "solhint": "^3.0.0",
     "solidity-coverage": "^0.7.5"
   },
   "scripts": {
-    "lint": "npx solhint contracts/**/*.sol",
+    "compile": "npx oz compile",
+    "lint": "npx solhint contracts/**/*.sol && eslint test/",
     "gas": "npx ganache-cli --gasLimit 8000000 2> /dev/null 1> /dev/null &",
-    "test": "npx oz compile && npx mocha test --exit --timeout 3000 && npx solhint contracts/**/*.sol",
+    "test": "npm run compile && npx mocha test --exit --timeout 3000 && npx solhint contracts/**/*.sol",
     "coverage": "npx truffle run coverage"
   },
   "repository": {
@@ -41,5 +43,10 @@
   "bugs": {
     "url": "https://github.com/Watt3r/Ecobux/issues"
   },
-  "homepage": "https://ecobux.org"
+  "homepage": "https://ecobux.org",
+  "husky": {
+    "hooks": {
+      "pre-commit": "npm run test && npm run lint"
+    }
+  }
 }
