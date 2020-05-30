@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: AGPL-3.0
 pragma solidity ^0.6.0;
 // Import OpenZeppelin's ERC-721 Implementation
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
