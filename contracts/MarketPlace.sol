@@ -12,8 +12,7 @@ contract MarketPlace {
     using SafeMath for uint256;
     ERC20 public ecoBux;
     ERC20 public ecoBuxFee;
-    uint256 public projectFee;
-    uint256 public charityFee;
+    uint256 public fee;
 
     bytes4 public constant ERC721_INTERFACE = bytes4(0x80ac58cd);
 
@@ -24,8 +23,8 @@ contract MarketPlace {
     constructor(address _ecoBuxAddress, address _ecoBuxFeeAddress) public {
         ecoBux = ERC20(_ecoBuxAddress);
         ecoBuxFee = ERC20(_ecoBuxFeeAddress);
-        projectFee = 10; // Base fee of every executed order, in EcoBux
-        charityFee = 10; // Base fee of every executed order, in EcoBux
+        fee = 2; // Base percentage (*100) of every executed order, in EcoBux
+                 // 2 = 2%
     }
 
     // EVENTS
@@ -81,10 +80,6 @@ contract MarketPlace {
         address assetOwner = subToken.ownerOf(assetId);
 
         require(msg.sender == assetOwner, "Only the owner can make orders");
-        require(
-            ecoPrice > (projectFee+charityFee),
-            "Asset price does not cover fees"
-        );
         require(
             subToken.getApproved(assetId) == address(this) ||
                 subToken.isApprovedForAll(assetOwner, address(this)),
@@ -173,25 +168,27 @@ contract MarketPlace {
         bytes32 orderId = order.id;
         delete orderByAssetId[subTokenAddress][assetId];
 
-        // Transfer charity fee if exists
-        if (charityFee > 0) {
+        // Transfer fees if exists
+        if (fee > 0) {
+            // Fee must be divided by 200 to split the fee between charity and EcoBux
             require(
-                _takeEco(msg.sender, subTokenAddress, charityFee),
+                _takeEco(msg.sender, subTokenAddress, uint (price * fee)/200),
                 "Transfering the charity fee to the charity failed"
             );
-        }
-
-        // Transfer project fee if exists
-        if (projectFee > 0) {
             require(
-                _takeEco(msg.sender, address(ecoBuxFee), projectFee),
+                _takeEco(msg.sender, address(ecoBuxFee), uint (price * fee)/200),
                 "Transfering the project fee to the EcoBux owner failed"
             );
         }
 
         // Transfer sale amount to seller
         require(
-            _takeEco(msg.sender, seller, price.sub(projectFee + charityFee)),
+            _takeEco(
+              msg.sender,
+              seller,
+              // Get the price - fees and add one to the seller if the fee cant be split evenly
+              price*(100-fee)/100 + ((price * (100 - (fee/2)) % 10 != 0 ? 1 : 0))
+            ),
             "Transfering the sale amount to the seller failed"
         );
 
