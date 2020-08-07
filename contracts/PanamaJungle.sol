@@ -210,7 +210,7 @@ contract PanamaJungle is ERC721, Ownable, Pausable, GSNRecipient {
      * @param id ID of the EcoBlock who's details will be retrieved
      * @return Array id and geopoints of an EcoBlock with all addons.
      */
-    function EcoBlockDetails(uint256 id)
+    function ecoBlockDetails(uint256 id)
         external
         view
         returns (

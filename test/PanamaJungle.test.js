@@ -18,9 +18,10 @@ const [admin, user, user2] = accounts;
 
 // Start test block
 describe('PanamaJungle', function() {
-  this.timeout(15000);
+  // Some tests take a while to setup, increase timeout to allow the tests to complete
+  this.timeout(150000);
   beforeEach(async function() {
-    // Deploy a new PanamaJungle contract for each test
+    // Deploy a new PanamaJungle and EcoBux contract for each test
     EcoBuxInstance = await EcoBux.new({from: admin});
     this.contract = await PanamaJungle.new(
         EcoBuxInstance.address,
@@ -56,8 +57,11 @@ describe('PanamaJungle', function() {
           {from: ZERO_ADDRESS, to: this.contract.address},
       );
     });
+    // TODO: test total number of EcoBlocks
+    // Not an issue if not implemented, as long as 17 ecoBlocks can be made
+    // Error right now is timeout, takes too long and then interrupts other tests
     /*
-    it('creates all EcoBlocks', async function() {
+    it('create all EcoBlocks', async function() {
       const EcoBlocks = require('./utils/EcoBlocks.json');
       for (i = 17; i< EcoBlocks.length; i+=17) {
         const {tx} = await this.contract.bulkCreateEcoBlocks(
@@ -71,6 +75,7 @@ describe('PanamaJungle', function() {
       }
     });
     */
+
     it('fails to create EcoBlocks if not owner', async function() {
       await expectRevert(
           this.contract.bulkCreateEcoBlocks(EcoBlocks, {from: user}),
@@ -150,9 +155,33 @@ describe('PanamaJungle', function() {
       );
     });
     it('return info about all owned EcoBlocks', async function() {
-      // TODO: Figure out a way to track all owned EcoBlocks
-      // const owned = await this.contract.ownedEcoBlocks(user);
-      // expect(owned.length).not.to.equal(0);
+      // Buy EcoBlock with GSN
+      const ecoMint = 25;
+      await EcoBuxInstance.createEco(user, ecoMint, {from: admin});
+      await EcoBuxInstance.approve(
+          this.contract.address, ecoMint,
+          {from: user, useGSN: true},
+      );
+
+      await this.contract.buyEcoBlocks(
+          1,
+          user,
+          {from: user, useGSN: true},
+      );
+
+      // Test if EcoBlock was purchased and correct info can be retrieved
+      const ownedEcoBlock = await this.contract.ownedEcoBlocks(user);
+      const ecoBlockDetails = await this.contract.ecoBlockDetails(
+          ownedEcoBlock[0],
+      );
+      // Check if ID matches
+      await expect((ecoBlockDetails[0])
+          .toString()).to.equal(ownedEcoBlock.toString());
+      // Check if geoMap points match
+      await expect((ecoBlockDetails[1])
+          .toString()).to.equal((EcoBlocks[ownedEcoBlock]).toString());
+      // Check if addons match (should be empty array)
+      await expect((ecoBlockDetails[2]).toString()).to.equal('');
     });
   });
   context('Microaddons Functions', function() {
