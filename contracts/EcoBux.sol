@@ -1,10 +1,13 @@
 // SPDX-License-Identifier: AGPL-3.0
 pragma solidity ^0.6.0;
 
+// Use OpenZeppelin's ERC20 abstract contract for base functions
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import "./utils/Ownable.sol";
-// Now using new openzeppelin's gsn
+// OpenZeppelin's GSN: Users dont need to hold ETH to transact ECOB
 import "@openzeppelin/contracts/GSN/GSNRecipient.sol";
+
+// Permission abstract contracts to control contract after deploy
+import "./utils/Ownable.sol";
 
 
 contract EcoBux is ERC20, Ownable, GSNRecipient {

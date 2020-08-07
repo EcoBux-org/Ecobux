@@ -1,16 +1,26 @@
 // SPDX-License-Identifier: AGPL-3.0
 pragma solidity ^0.6.0;
 
-// Import OpenZeppelin's SafeMath Implementation
+// OpenZeppelin's SafeMath Implementation is used to avoid overflows
 import "@openzeppelin/contracts/math/SafeMath.sol";
+
+// Interface contract to interact with EcoBux and ERC20 subcontracts
 import "./utils/Erc20.sol";
+// Interface contracts to interact with ERC721 subcontracts 
 import "./utils/Erc721.sol";
 import "./utils/Erc721Verifiable.sol";
 
 
+// TODO: Add GSN
 contract MarketPlace {
+    // Prevents overflows with uint256
     using SafeMath for uint256;
+
+    // Declare ecobux address
     ERC20 public ecoBux;
+    // EcoBux Fee is a empty smart contract used to "burn" EcoBux
+    // All EcoBux in this contract is money given to EcoBux to cover gas fees and 
+    // Other operational costs.
     ERC20 public ecoBuxFee;
     uint256 public fee;
 
@@ -20,14 +30,15 @@ contract MarketPlace {
         keccak256("verifyFingerprint(uint256,bytes)")
     );
 
+    // Start contract with EcoBux address and Fee address as parameters
     constructor(address _ecoBuxAddress, address _ecoBuxFeeAddress) public {
         ecoBux = ERC20(_ecoBuxAddress);
         ecoBuxFee = ERC20(_ecoBuxFeeAddress);
-        fee = 2; // Base percentage (*100) of every executed order, in EcoBux
-                 // 2 = 2%
+        // Base percentage of every executed order, in EcoBux
+        // 2 = 2%
+        fee = 2; 
     }
 
-    // EVENTS
     event OrderCreated(
         bytes32 id,
         uint256 indexed assetId,
@@ -54,6 +65,7 @@ contract MarketPlace {
 
     event EcoTransfer(address owner, uint256 amount);
 
+    // Struct defines order properties
     struct Order {
         // Order ID
         bytes32 id;
@@ -65,6 +77,7 @@ contract MarketPlace {
         address seller;
     }
 
+    // Mapping of all active trades
     mapping(address => mapping(uint256 => Order)) public orderByAssetId;
 
     /** @dev Create order
@@ -86,6 +99,7 @@ contract MarketPlace {
             "The contract is not authorized to manage the asset"
         );
 
+        // Create unique orderId 
         bytes32 orderId = keccak256(
             abi.encodePacked(
                 block.timestamp,
@@ -184,15 +198,15 @@ contract MarketPlace {
         // Transfer sale amount to seller
         require(
             _takeEco(
-              msg.sender,
-              seller,
-              // Get the price - fees and add one to the seller if the fee cant be split evenly
-              price*(100-fee)/100 + ((price * (100 - (fee/2)) % 10 != 0 ? 1 : 0))
+                msg.sender,
+                seller,
+                // Get the price - fees and add one to the seller if the fee cant be split evenly
+                price*(100-fee)/100 + ((price * (100 - (fee/2)) % 10 != 0 ? 1 : 0))
             ),
             "Transfering the sale amount to the seller failed"
         );
 
-        // Transfer asset owner
+        // Transfer asset 
         nftRegistry.safeTransferFrom(seller, msg.sender, assetId);
 
         emit OrderSuccessful(

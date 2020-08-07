@@ -37,18 +37,18 @@ describe('PanamaJungle', function() {
     });
   });
 
-  context('Allotment Creation Functions', function() {
+  context('EcoBlock Creation Functions', function() {
     beforeEach(async function() {
       // Fund contracts to cover gas cost
       await gsn.fundRecipient(web3, {recipient: EcoBuxInstance.address});
       await gsn.fundRecipient(web3, {recipient: this.contract.address});
 
-      // Create allotments
-      allotments = require('./utils/allotments.json');
-      allotments = allotments.slice(0, 5);
+      // Create EcoBlocks
+      EcoBlocks = require('./utils/EcoBlocks.json');
+      EcoBlocks = EcoBlocks.slice(0, 5);
 
-      const {tx} = await this.contract.bulkCreateAllotment(
-          allotments,
+      const {tx} = await this.contract.bulkCreateEcoBlocks(
+          EcoBlocks,
           {from: admin, useGSN: false},
       );
       await expectEvent.inTransaction(
@@ -57,11 +57,11 @@ describe('PanamaJungle', function() {
       );
     });
     /*
-    it('creates all allotments', async function() {
-      const allotments = require('./utils/allotments.json');
-      for (i = 17; i< allotments.length; i+=17) {
-        const {tx} = await this.contract.bulkCreateAllotment(
-            allotments.slice(i, i+17),
+    it('creates all EcoBlocks', async function() {
+      const EcoBlocks = require('./utils/EcoBlocks.json');
+      for (i = 17; i< EcoBlocks.length; i+=17) {
+        const {tx} = await this.contract.bulkCreateEcoBlocks(
+            EcoBlocks.slice(i, i+17),
             {from: admin, useGSN: false},
         );
         expectEvent.inTransaction(
@@ -71,14 +71,14 @@ describe('PanamaJungle', function() {
       }
     });
     */
-    it('fails to create allotments if not owner', async function() {
+    it('fails to create EcoBlocks if not owner', async function() {
       await expectRevert(
-          this.contract.bulkCreateAllotment(allotments, {from: user}),
+          this.contract.bulkCreateEcoBlocks(EcoBlocks, {from: user}),
           'Only the owner can run this function',
       );
     });
 
-    it('buy allotment with GSN', async function() {
+    it('buy EcoBlock with GSN', async function() {
       const startEth = await web3.eth.getBalance(user);
       const ecoMint = 25;
       await EcoBuxInstance.createEco(user, ecoMint, {from: admin});
@@ -89,14 +89,14 @@ describe('PanamaJungle', function() {
       await expect((await EcoBuxInstance.allowance(user, this.contract.address))
           .toString()).to.equal(ecoMint.toString());
 
-      await this.contract.buyAllotments(
+      await this.contract.buyEcoBlocks(
           1,
           user,
           {from: user, useGSN: true},
       );
 
-      // Test if allotment was purchased
-      await expect(await this.contract.ownedAllotments(user)).to.be.length(1);
+      // Test if EcoBlock was purchased
+      await expect(await this.contract.ownedEcoBlocks(user)).to.be.length(1);
 
       // Test if GSN worked
       // Note that we need to use strings to compare the 256 bit integers
@@ -115,14 +115,14 @@ describe('PanamaJungle', function() {
       await expect((await EcoBuxInstance.allowance(user, this.contract.address))
           .toString()).to.equal(ecoMint.toString());
 
-      await this.contract.buyAllotments(
+      await this.contract.buyEcoBlocks(
           3,
           user,
           {from: user, useGSN: true},
       );
 
-      // Test if allotment was purchased
-      await expect(await this.contract.ownedAllotments(user)).to.be.length(3);
+      // Test if EcoBlock was purchased
+      await expect(await this.contract.ownedEcoBlocks(user)).to.be.length(3);
 
       // Test if GSN worked
       // Note that we need to use strings to compare the 256 bit integers
@@ -130,13 +130,13 @@ describe('PanamaJungle', function() {
           .toString()).to.equal(startEth);
     });
 
-    it('fails to buy allotments if not enough EcoBux', async function() {
+    it('fails to buy EcoBlocks if not enough EcoBux', async function() {
       await expectRevert(
-          this.contract.buyAllotments(1, user, {from: user}),
+          this.contract.buyEcoBlocks(1, user, {from: user}),
           'Not enough available Ecobux!',
       );
     });
-    it('fails to buy allotments if not enough Allotments', async function() {
+    it('fails to buy EcoBlocks if not enough EcoBlocks', async function() {
       const ecoMint = 2500;
       await EcoBuxInstance.createEco(user, ecoMint, {from: admin});
       await EcoBuxInstance.approve(
@@ -145,13 +145,13 @@ describe('PanamaJungle', function() {
       );
 
       await expectRevert(
-          this.contract.buyAllotments(100, user, {from: user}),
+          this.contract.buyEcoBlocks(100, user, {from: user}),
           'Not enough available tokens!',
       );
     });
-    it('return info about all owned allotments', async function() {
-      // TODO: Figure out a way to track all owned allotments
-      // const owned = await this.contract.ownedAllotments(user);
+    it('return info about all owned EcoBlocks', async function() {
+      // TODO: Figure out a way to track all owned EcoBlocks
+      // const owned = await this.contract.ownedEcoBlocks(user);
       // expect(owned.length).not.to.equal(0);
     });
   });
@@ -160,12 +160,12 @@ describe('PanamaJungle', function() {
       // Fund contracts to cover gas cost
       await gsn.fundRecipient(web3, {recipient: this.contract.address});
 
-      // Create a single allotment
-      allotments = require('./utils/allotments.json');
-      allotments = allotments.slice(0, 1);
+      // Create a single EcoBlock
+      EcoBlocks = require('./utils/EcoBlocks.json');
+      EcoBlocks = EcoBlocks.slice(0, 1);
 
-      const {tx} = await this.contract.bulkCreateAllotment(
-          allotments,
+      const {tx} = await this.contract.bulkCreateEcoBlocks(
+          EcoBlocks,
           {from: admin, useGSN: false},
       );
       await expectEvent.inTransaction(
@@ -284,7 +284,7 @@ describe('PanamaJungle', function() {
     });
   });
   context('Admin Functions', function() {
-    it('set a new allotment price', async function() {
+    it('set a new EcoBlock price', async function() {
       const newPrice = 1000;
       await this.contract.setCurrentPrice(newPrice, {from: admin});
 
@@ -349,7 +349,7 @@ describe('PanamaJungle', function() {
       await this.contract.pause({from: admin});
       // Cannot execute normal functions
       await expectRevert(
-          this.contract.buyAllotments(0, user, {from: user}),
+          this.contract.buyEcoBlocks(0, user, {from: user}),
           'Function cannot be used while contract is paused',
       );
     });

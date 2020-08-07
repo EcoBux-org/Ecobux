@@ -4,7 +4,7 @@ pragma solidity >=0.6.0;
 
 /**
  * @title ERC20
- * @dev The ERC20 interface provides simple interfacing with ecoBucks
+ * @dev The ERC20 interface provides simple interfacing with EcoBucks contract
 */
 // solhint-disable-next-line
 abstract contract ERC20 {

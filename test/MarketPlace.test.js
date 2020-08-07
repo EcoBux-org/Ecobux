@@ -18,6 +18,7 @@ const [admin, seller, buyer, buyer2] = accounts;
 
 // Start test block
 describe('MarketPlace', function() {
+  this.timeout(15000);
   beforeEach(async function() {
     EcoBuxInstance = await EcoBux.new({from: admin});
     EcoBuxFeeInstance = await EcoBuxFee.new({from: admin});
@@ -36,12 +37,12 @@ describe('MarketPlace', function() {
     await gsn.fundRecipient(web3, {recipient: PanamaJungleInstance.address});
     await gsn.fundRecipient(web3, {recipient: this.contract.address});
 
-    // Create a single allotment
-    allotments = require('./utils/allotments.json');
-    allotments = allotments.slice(0, 1);
+    // Create a single EcoBlock
+    EcoBlocks = require('./utils/EcoBlocks.json');
+    EcoBlocks = EcoBlocks.slice(0, 1);
 
-    const {tx} = await PanamaJungleInstance.bulkCreateAllotment(
-        allotments,
+    const {tx} = await PanamaJungleInstance.bulkCreateEcoBlocks(
+        EcoBlocks,
         {from: admin, useGSN: false},
     );
     await expectEvent.inTransaction(
@@ -55,8 +56,8 @@ describe('MarketPlace', function() {
       ecoPrice = 25;
     });
     it('create a new sell order', async function() {
-      // Buy Allotment for seller
-      const ecoMint = 25; // Amount of EcoBux to mint: Used to buy allotment
+      // Buy EcoBlock for seller
+      const ecoMint = 25; // Amount of EcoBux to mint: Used to buy EcoBlock
       const ecoPrice = 25; // Cost of sell order
       await EcoBuxInstance.createEco(seller, ecoMint, {from: admin});
       await EcoBuxInstance.approve(
@@ -69,26 +70,26 @@ describe('MarketPlace', function() {
             PanamaJungleInstance.address,
         )).toString(),
       ).to.equal(ecoMint.toString());
-      await PanamaJungleInstance.buyAllotments(
+      await PanamaJungleInstance.buyEcoBlocks(
           1,
           seller,
           {from: seller, useGSN: true},
       );
 
-      // Bought allotment 0
-      ownedAllotment = 0;
+      // Bought EcoBlock 0
+      ownedEcoBlock = 0;
 
       // Approve MarketPlace Contract to manage asset
       await PanamaJungleInstance.approve(
           this.contract.address,
-          ownedAllotment,
+          ownedEcoBlock,
           {from: seller, useGSN: true},
       );
 
       // Create Sell Order
       const {tx} = await this.contract.createOrder(
           PanamaJungleInstance.address,
-          ownedAllotment,
+          ownedEcoBlock,
           ecoPrice,
           {from: seller, useGSN: false},
       );
@@ -97,7 +98,7 @@ describe('MarketPlace', function() {
           MarketPlace,
           'OrderCreated',
           {
-            assetId: ownedAllotment.toString(),
+            assetId: ownedEcoBlock.toString(),
             assetOwner: seller,
             subTokenAddress: PanamaJungleInstance.address,
             ecoPrice: ecoPrice.toString(),
@@ -105,11 +106,11 @@ describe('MarketPlace', function() {
       );
     });
     it('fail to create order if subTokenAddr is not ERC721', async function() {
-      // Bought allotment 0
+      // Bought EcoBlock 0
       await expectRevert(
           this.contract.createOrder(
               seller,
-              ownedAllotment,
+              ownedEcoBlock,
               ecoPrice,
               {from: seller},
           ),
@@ -119,13 +120,13 @@ describe('MarketPlace', function() {
     it('fail to create sell order if contract owns asset', async function() {
       const ecoPrice = 25; // Cost of sell order
 
-      // Allotment 0 is the only one available
-      const ownedAllotment = 0;
+      // EcoBlock 0 is the only one available
+      const ownedEcoBlock = 0;
 
       await expectRevert(
           this.contract.createOrder(
               PanamaJungleInstance.address,
-              ownedAllotment,
+              ownedEcoBlock,
               ecoPrice,
               {from: seller},
           ),
@@ -134,8 +135,8 @@ describe('MarketPlace', function() {
     });
     /* Fees must be covered as they are now a percentage of EcoBux, not const
     it('fail to create sell order if price doesnt cover fee', async function() {
-      // Buy Allotment for seller
-      const ecoMint = 25; // Amount of EcoBux to mint: Used to buy allotment
+      // Buy EcoBlock for seller
+      const ecoMint = 25; // Amount of EcoBux to mint: Used to buy EcoBlock
       const ecoPrice = 25; // Cost of sell order
       await EcoBuxInstance.createEco(seller, ecoMint, {from: admin});
       await EcoBuxInstance.approve(
@@ -148,26 +149,26 @@ describe('MarketPlace', function() {
             PanamaJungleInstance.address,
         )).toString(),
       ).to.equal(ecoMint.toString());
-      await PanamaJungleInstance.buyAllotments(
+      await PanamaJungleInstance.buyEcoBlocks(
           1,
           seller,
           {from: seller, useGSN: true},
       );
 
-      // Allotment 0 is the only one available
-      const ownedAllotment = 0;
+      // EcoBlock 0 is the only one available
+      const ownedEcoBlock = 0;
 
       // Approve MarketPlace Contract to manage asset
       await PanamaJungleInstance.approve(
           this.contract.address,
-          ownedAllotment,
+          ownedEcoBlock,
           {from: seller, useGSN: true},
       );
 
       await expectRevert(
           this.contract.createOrder(
               PanamaJungleInstance.address,
-              ownedAllotment,
+              ownedEcoBlock,
               ecoPrice,
               {from: seller},
           ),
@@ -176,8 +177,8 @@ describe('MarketPlace', function() {
     });
     */
     it('fail to create order if owner not approve contract', async function() {
-      // Buy Allotment for seller
-      const ecoMint = 25; // Amount of EcoBux to mint: Used to buy allotment
+      // Buy EcoBlock for seller
+      const ecoMint = 25; // Amount of EcoBux to mint: Used to buy EcoBlock
       const ecoPrice = 25; // Cost of sell order
       await EcoBuxInstance.createEco(seller, ecoMint, {from: admin});
       await EcoBuxInstance.approve(
@@ -190,19 +191,19 @@ describe('MarketPlace', function() {
             PanamaJungleInstance.address,
         )).toString(),
       ).to.equal(ecoMint.toString());
-      await PanamaJungleInstance.buyAllotments(
+      await PanamaJungleInstance.buyEcoBlocks(
           1,
           seller,
           {from: seller, useGSN: true},
       );
 
-      // Allotment 0 is the only one available
-      const ownedAllotment = 0;
+      // EcoBlock 0 is the only one available
+      const ownedEcoBlock = 0;
 
       await expectRevert(
           this.contract.createOrder(
               PanamaJungleInstance.address,
-              ownedAllotment,
+              ownedEcoBlock,
               ecoPrice,
               {from: seller},
           ),
@@ -214,8 +215,8 @@ describe('MarketPlace', function() {
     beforeEach(async function() {
       // Create Sell order from seller
 
-      // Buy Allotment for seller
-      const ecoMint = 25; // Amount of EcoBux to mint: Used to buy allotment
+      // Buy EcoBlock for seller
+      const ecoMint = 25; // Amount of EcoBux to mint: Used to buy EcoBlock
       const ecoPrice = 25; // Cost of sell order
       await EcoBuxInstance.createEco(seller, ecoMint, {from: admin});
       await EcoBuxInstance.approve(
@@ -228,26 +229,26 @@ describe('MarketPlace', function() {
             PanamaJungleInstance.address,
         )).toString(),
       ).to.equal(ecoMint.toString());
-      await PanamaJungleInstance.buyAllotments(
+      await PanamaJungleInstance.buyEcoBlocks(
           1,
           seller,
           {from: seller, useGSN: true},
       );
 
-      // Bought allotment 0
-      ownedAllotment = 0;
+      // Bought EcoBlock 0
+      ownedEcoBlock = 0;
 
       // Approve MarketPlace Contract to manage asset
       await PanamaJungleInstance.approve(
           this.contract.address,
-          ownedAllotment,
+          ownedEcoBlock,
           {from: seller, useGSN: true},
       );
 
       // Create Sell Order
       const {tx} = await this.contract.createOrder(
           PanamaJungleInstance.address,
-          ownedAllotment,
+          ownedEcoBlock,
           ecoPrice,
           {from: seller, useGSN: false},
       );
@@ -256,7 +257,7 @@ describe('MarketPlace', function() {
           MarketPlace,
           'OrderCreated',
           {
-            assetId: ownedAllotment.toString(),
+            assetId: ownedEcoBlock.toString(),
             assetOwner: seller,
             subTokenAddress: PanamaJungleInstance.address,
             ecoPrice: ecoPrice.toString(),
@@ -267,7 +268,7 @@ describe('MarketPlace', function() {
       // Create Sell Order
       const {tx} = await this.contract.cancelOrder(
           PanamaJungleInstance.address,
-          ownedAllotment,
+          ownedEcoBlock,
           {from: seller, useGSN: false},
       );
       // TODO: verify orderId is correct
@@ -276,7 +277,7 @@ describe('MarketPlace', function() {
           MarketPlace,
           'OrderCancelled',
           {
-            assetId: ownedAllotment.toString(),
+            assetId: ownedEcoBlock.toString(),
             seller: seller,
             subTokenAddress: PanamaJungleInstance.address,
           },
@@ -286,7 +287,7 @@ describe('MarketPlace', function() {
       await expectRevert(
           this.contract.cancelOrder(
               PanamaJungleInstance.address,
-              ownedAllotment,
+              ownedEcoBlock,
               {from: buyer},
           ),
           'Unauthorized user',
@@ -307,8 +308,8 @@ describe('MarketPlace', function() {
     beforeEach(async function() {
       // Create Sell order from seller
 
-      // Buy Allotment for seller
-      this.ecoMint = 25; // Amount of EcoBux to mint: Used to buy allotment
+      // Buy EcoBlock for seller
+      this.ecoMint = 25; // Amount of EcoBux to mint: Used to buy EcoBlock
       this.ecoPrice = 100; // Cost of sell order (1 EcoBux)
       await EcoBuxInstance.createEco(seller, this.ecoMint, {from: admin});
       await EcoBuxInstance.approve(
@@ -321,26 +322,26 @@ describe('MarketPlace', function() {
             PanamaJungleInstance.address,
         )).toString(),
       ).to.equal(this.ecoMint.toString());
-      await PanamaJungleInstance.buyAllotments(
-          1, // Buy a single allotment
+      await PanamaJungleInstance.buyEcoBlocks(
+          1, // Buy a single EcoBlock
           seller,
           {from: seller, useGSN: true},
       );
 
-      // Bought allotment 0
-      ownedAllotment = 0;
+      // Bought EcoBlock 0
+      ownedEcoBlock = 0;
 
       // Approve MarketPlace Contract to manage asset
       await PanamaJungleInstance.approve(
           this.contract.address,
-          ownedAllotment,
+          ownedEcoBlock,
           {from: seller, useGSN: true},
       );
 
       // Create Sell Order
       const {tx} = await this.contract.createOrder(
           PanamaJungleInstance.address,
-          ownedAllotment,
+          ownedEcoBlock,
           this.ecoPrice,
           {from: seller, useGSN: false},
       );
@@ -349,7 +350,7 @@ describe('MarketPlace', function() {
           MarketPlace,
           'OrderCreated',
           {
-            assetId: ownedAllotment.toString(),
+            assetId: ownedEcoBlock.toString(),
             assetOwner: seller,
             subTokenAddress: PanamaJungleInstance.address,
             ecoPrice: this.ecoPrice.toString(),
@@ -367,7 +368,7 @@ describe('MarketPlace', function() {
       // Execute Sell Order
       const {tx} = await this.contract.executeOrder(
           PanamaJungleInstance.address,
-          ownedAllotment,
+          ownedEcoBlock,
           this.ecoPrice,
           {from: buyer, useGSN: false},
       );
@@ -377,7 +378,7 @@ describe('MarketPlace', function() {
           MarketPlace,
           'OrderSuccessful',
           {
-            assetId: ownedAllotment.toString(),
+            assetId: ownedEcoBlock.toString(),
             seller: seller,
             subTokenAddress: PanamaJungleInstance.address,
             totalPrice: this.ecoPrice.toString(),
@@ -391,14 +392,14 @@ describe('MarketPlace', function() {
           .to.equal(Math.floor(this.ecoPrice*0.01));
       expect((await EcoBuxInstance.balanceOf(PanamaJungleInstance.address)).toNumber())
           .to.equal(Math.floor(this.ecoPrice*0.01) + 25);
-      // Add 25 because allotment was purchased
+      // Add 25 because EcoBlock was purchased
     });
     it('execute sell order with large fee', async function() {
       this.ecoPrice = 50000; // Cost of sell order (500 EcoBux)
       // Create Sell Order
       await this.contract.createOrder(
           PanamaJungleInstance.address,
-          ownedAllotment,
+          ownedEcoBlock,
           this.ecoPrice,
           {from: seller, useGSN: false},
       );
@@ -413,7 +414,7 @@ describe('MarketPlace', function() {
       // Execute Sell Order
       const {tx} = await this.contract.executeOrder(
           PanamaJungleInstance.address,
-          ownedAllotment,
+          ownedEcoBlock,
           this.ecoPrice,
           {from: buyer, useGSN: false},
       );
@@ -423,7 +424,7 @@ describe('MarketPlace', function() {
           MarketPlace,
           'OrderSuccessful',
           {
-            assetId: ownedAllotment.toString(),
+            assetId: ownedEcoBlock.toString(),
             seller: seller,
             subTokenAddress: PanamaJungleInstance.address,
             totalPrice: this.ecoPrice.toString(),
@@ -437,14 +438,14 @@ describe('MarketPlace', function() {
           .to.equal(Math.floor(this.ecoPrice*0.01));
       expect((await EcoBuxInstance.balanceOf(PanamaJungleInstance.address)).toNumber())
           .to.equal(Math.floor(this.ecoPrice*0.01) + 25);
-      // Add 25 because allotment was purchased
+      // Add 25 because EcoBlock was purchased
     });
     it('execute sell order with no fee', async function() {
       this.ecoPrice = 5; // Cost of sell order (0.05 EcoBux)
       // Create Sell Order
       await this.contract.createOrder(
           PanamaJungleInstance.address,
-          ownedAllotment,
+          ownedEcoBlock,
           this.ecoPrice,
           {from: seller, useGSN: false},
       );
@@ -459,7 +460,7 @@ describe('MarketPlace', function() {
       // Execute Sell Order
       const {tx} = await this.contract.executeOrder(
           PanamaJungleInstance.address,
-          ownedAllotment,
+          ownedEcoBlock,
           this.ecoPrice,
           {from: buyer, useGSN: false},
       );
@@ -469,7 +470,7 @@ describe('MarketPlace', function() {
           MarketPlace,
           'OrderSuccessful',
           {
-            assetId: ownedAllotment.toString(),
+            assetId: ownedEcoBlock.toString(),
             seller: seller,
             subTokenAddress: PanamaJungleInstance.address,
             totalPrice: this.ecoPrice.toString(),
@@ -483,7 +484,7 @@ describe('MarketPlace', function() {
           .to.equal(Math.floor(this.ecoPrice*0.01));
       expect((await EcoBuxInstance.balanceOf(PanamaJungleInstance.address)).toNumber())
           .to.equal(Math.floor(this.ecoPrice*0.01) + 25);
-      // Add 25 because allotment was purchased
+      // Add 25 because EcoBlock was purchased
     });
     it('fail to execute order if asset not published', async function() {
       await expectRevert(
@@ -500,7 +501,7 @@ describe('MarketPlace', function() {
       await expectRevert(
           this.contract.executeOrder(
               PanamaJungleInstance.address, // Subtoken Address
-              ownedAllotment, // Asset ID
+              ownedEcoBlock, // Asset ID
               this.ecoPrice, // Price
               {from: seller},
           ),
@@ -511,7 +512,7 @@ describe('MarketPlace', function() {
       await expectRevert(
           this.contract.executeOrder(
               PanamaJungleInstance.address, // Subtoken Address
-              ownedAllotment, // Asset ID
+              ownedEcoBlock, // Asset ID
               1, // Incorrect Price
               {from: buyer},
           ),
@@ -522,7 +523,7 @@ describe('MarketPlace', function() {
       await expectRevert(
           this.contract.executeOrder(
               PanamaJungleInstance.address, // Subtoken Address
-              ownedAllotment, // Asset ID
+              ownedEcoBlock, // Asset ID
               this.ecoPrice, // Price
               {from: buyer},
           ),
@@ -533,12 +534,12 @@ describe('MarketPlace', function() {
       // In this test, seller and buyer are corroborating to steal EcoBux
 
       // Approve buyer to take asset
-      await PanamaJungleInstance.approve(buyer, ownedAllotment, {from: seller});
+      await PanamaJungleInstance.approve(buyer, ownedEcoBlock, {from: seller});
       // buyer takes asset
       await PanamaJungleInstance.safeTransferFrom(
           seller,
           buyer,
-          ownedAllotment,
+          ownedEcoBlock,
           {from: buyer},
       );
 
@@ -546,7 +547,7 @@ describe('MarketPlace', function() {
       await expectRevert(
           this.contract.executeOrder(
               PanamaJungleInstance.address, // Subtoken Address
-              ownedAllotment, // Asset ID
+              ownedEcoBlock, // Asset ID
               this.ecoPrice, // Price
               {from: buyer2},
           ),

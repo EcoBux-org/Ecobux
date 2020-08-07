@@ -1,11 +1,14 @@
 // SPDX-License-Identifier: AGPL-3.0
 pragma solidity ^0.6.0;
+
 // Import OpenZeppelin's ERC-20 Implementation
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-// Import OpenZeppelin's SafeMath Implementation
+// OpenZeppelin's SafeMath Implementation is used to avoid overflows
 import "@openzeppelin/contracts/math/SafeMath.sol";
-// Now using new openzeppelin's gsn
+// OpenZeppelin's GSN: Users dont need to hold ETH to transact ECOB
 import "@openzeppelin/contracts/GSN/GSNRecipient.sol";
+
+// Permission abstract contracts to control contract after deploy
 import "./utils/Ownable.sol";
 import "./utils/Pausable.sol";
 
@@ -16,9 +19,6 @@ contract PanamaFuture is ERC20, Ownable, Pausable, GSNRecipient {
     uint256 public currentPrice;
     ERC20 public ecoBuxAddress;
 
-    // Event emitted whenever Future are transferred
-    event Transferred(address owner, uint256 amount);
-
     // Event emitted when ECOB are transferred from user to contract
     event EcoTransfer(address owner, uint256 amount);
 
@@ -26,7 +26,7 @@ contract PanamaFuture is ERC20, Ownable, Pausable, GSNRecipient {
     constructor(address _ecoBuxAddress) public ERC20("PanamaFuture", "PAF") {
         _setupDecimals(0);
         ecoBuxAddress = ERC20(_ecoBuxAddress);
-        currentPrice = 25; // Default to 1 ECOB per FUTURE. Changed by setCurrentPrice()
+        currentPrice = 25; // Default to 25 ECOB per FUTURE. Changed by setCurrentPrice()
     }
 
     /** @dev Fuction to interface with creating and dispensing Future
@@ -40,18 +40,18 @@ contract PanamaFuture is ERC20, Ownable, Pausable, GSNRecipient {
         // Require at least current price * tokens
         require(availableECO(_msgSender()) >= _amount * currentPrice, "Not Enough EcoBux");
 
-        // Mint tokens and sends them to the original sender
-        super._mint(_msgSender(), _amount);
-
         // Take money from account
         takeEco(_msgSender(), currentPrice * _amount);
 
-        // Emit Transferred after Future is transferred
-        emit Transferred(_msgSender(), _amount);
+        // Mint tokens and sends them to the original sender
+        super._mint(_msgSender(), _amount);
+
+        // Emit Transfer after Future is transferred
+        emit Transfer(address(0), _msgSender(), _amount);
     }
 
     // Relay Functions to allow users to avoid needing a wallet
-    // GSN func
+    // Required by GSN
     // TODO: LIMIT USE OF THIS; ANY USER CAN DRAIN
     function acceptRelayedCall(
         address relay,
@@ -82,12 +82,13 @@ contract PanamaFuture is ERC20, Ownable, Pausable, GSNRecipient {
     }
 
     // Relay Requires this func even if unused
-    // GSN Func
+    // Required by GSN
     // TODO: Add stuff here
     function _preRelayedCall(bytes memory context) internal override returns (bytes32) {
         // TODO
     }
 
+    // Required by GSN
     function _postRelayedCall(
         bytes memory context,
         bool,
@@ -98,16 +99,19 @@ contract PanamaFuture is ERC20, Ownable, Pausable, GSNRecipient {
     }
 
 
-    // Needed by Openzeppelin GSN
+    // Required by GSN
     function _msgSender() internal view override(Context, GSNRecipient) returns (address payable) {
         return GSNRecipient._msgSender();
     }
 
+    // Required by GSN
     function _msgData() internal view override(Context, GSNRecipient) returns (bytes memory) {
         return GSNRecipient._msgData();
     }
 
-    /** @dev Function to take EcoBux from user and transfers it to contract
+    /** @dev Function to take ecobux from user and transfer to this contract
+     * @param _from address to take ecobux from
+     * @param _amount how much ecobux (in atomic units) to take
      */
     function takeEco(address _from, uint256 _amount) internal {
         require(availableECO(_from) >= _amount, "Not Enough EcoBux"); // Requre enough EcoBux available
@@ -115,7 +119,8 @@ contract PanamaFuture is ERC20, Ownable, Pausable, GSNRecipient {
         emit EcoTransfer(_from, _amount);
     }
 
-    /** @dev Function to verify user has enough EcoBux to spend
+    /** @dev Function to verify user has enough ecobux to spend
+     * @param user address of user to verify
      */
     function availableECO(address user) internal view returns (uint256) {
         return ecoBuxAddress.allowance(user, address(this));

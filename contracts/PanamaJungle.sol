@@ -1,12 +1,14 @@
 // SPDX-License-Identifier: AGPL-3.0
 pragma solidity ^0.6.0;
+
 // Import OpenZeppelin's ERC-721 Implementation
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
-// Import OpenZeppelin's SafeMath Implementation
+// OpenZeppelin's SafeMath Implementation is used to avoid overflows
 import "@openzeppelin/contracts/math/SafeMath.sol";
-// Now using new openzeppelin's gsn
+// OpenZeppelin's GSN: Users dont need to hold ETH to transact ECOB
 import "@openzeppelin/contracts/GSN/GSNRecipient.sol";
-// Permission abstract contracts to control contract
+
+// Permission abstract contracts to control contract after deploy
 import "./utils/Ownable.sol";
 import "./utils/Pausable.sol";
 // Interface contract to interact with EcoBux
@@ -14,20 +16,25 @@ import "./utils/Erc20.sol";
 
 
 contract PanamaJungle is ERC721, Ownable, Pausable, GSNRecipient {
+    // Prevents overflows with uint256
     using SafeMath for uint256;
 
-    // This struct will be used to represent one allotment of land
-    struct Allotment {
+    // Struct to represent one EcoBlock of land
+    struct EcoBlock {
         // Array of lat/lng points to represent the boundaries of a point.
+        // Points use a linear transform to fit into uint16 values with neglible 
+        // loss in data, see the EcoBux GitHub page for info on converting these 
+        // values
         uint16[2][5] geoMap;
-        // Array of microaddons for each allotment
+        // Array of microaddons for each EcoBlock 
+        // uint16 gives max 65535 possible unique microaddons
         uint16[] addons;
     }
 
-    // List of existing allotments
-    Allotment[] internal allotments;
+    // List of EcoBlocks to store and iterate through
+    EcoBlock[] internal EcoBlocks;
 
-    // Struct defines the microaddons for an allotment.
+    // Struct defines microaddon properties for an EcoBlock
     struct MicroAddon {
         uint16 price;
         bool buyable;
@@ -36,62 +43,55 @@ contract PanamaJungle is ERC721, Ownable, Pausable, GSNRecipient {
     // List of existing microAddons
     MicroAddon[] public microAddons;
 
-    // Event that will be emitted whenever a new allotment is created or ownership is transferred
-    event Birth(
-        address owner,
-        uint256 allotmentId,
-        uint16[2][5] geoMap,
-        uint16[] addons
-    );
-
     // Event emitted when a new mircoAddon is created
     event NewAddon(uint256 addonId, uint16 price, bool buyable);
 
-    // Event emitted when a microAddon is added to an allotment
+    // Event emitted when a microAddon is added to an EcoBlock
     event AddedAddon(
             uint256 tokenId,
             uint16 addonId
     );
 
-    // Define non fungible token address
+    // Define contract's token address
     ERC721 public nftAddress = ERC721(address(this));
-    // Default to 25 ECOB per allotment. Changed by setCurrentPrice()
+    // Default to 25 ECOB per EcoBlock. Changed by setCurrentPrice()
     uint256 public currentPrice = 25;
-    // Nonce for RNG. Can be predictable, however it only determines which allotment to buy
+    // Nonce is Theoretically predictable, but only used to pick EcoBlocks bought
+    // https://medium.com/@tiagobertolo/how-to-safely-generate-random-numbers-in-solidity-contracts-bd8bd217ff7b
     uint256 private randomNonce;
     // Declare ecobux address
     ERC20 public ecoBuxAddress;
 
-    // Start contract with new EcoBux address as parameter
+    // Start contract with EcoBux address as parameter
     constructor(address _ecoBuxAddress) public ERC721("PanamaJungle", "PAJ") {
         ecoBuxAddress = ERC20(_ecoBuxAddress);
     }
 
-   /** @dev Function to group create allotments
-     * @param _allotments an array of arrays of points for creating each allotment bounds
-     * Each lat lng point converts to having six decimal points, about 4 inches of precision.
-     * They are stored compressed in uint16 to save space
-     * And solidity does not handle fixed points well
-     * (precision is not accuracy, note https://gis.stackexchange.com/a/8674 )
-     * @return success bool if the allotment generation was successful
-     **/
-    function bulkCreateAllotment(uint16[2][5][] calldata _allotments)
+   /** @dev Function to group create EcoBlocks
+     * @param _EcoBlocks an array of arrays of points for creating each EcoBlock bounds
+       * Each lat lng point converts to having six decimal points, about 4 inches of precision.
+       * They are stored compressed in uint16 to save space
+       * And solidity does not handle fixed points well
+       * (precision is not accuracy, note https://gis.stackexchange.com/a/8674 )
+     * @return success bool if the EcoBlock generation was successful
+     */
+    function bulkCreateEcoBlocks(uint16[2][5][] calldata _EcoBlocks)
         external
         onlyOwner
         returns (bool success)
     {
-        // For each allotment in initial array
-        for (uint256 i = 0; i < _allotments.length; i++) {
-            _createAllotment(_allotments[i]);
+        // For each EcoBlock in initial array
+        for (uint256 i = 0; i < _EcoBlocks.length; i++) {
+            _createEcoBlock(_EcoBlocks[i]);
         }
         return true;
     }
 
-  /** @dev Function to buy allotments
-    * @param _tokensDesired number of allotments to buy from contract
-    * @param _to address to send bought allotments
+  /** @dev Function to buy EcoBlocks
+    * @param _tokensDesired number of EcoBlocks to buy from contract
+    * @param _to address to send bought EcoBlocks
     */
-    function buyAllotments(uint256 _tokensDesired, address _to)
+    function buyEcoBlocks(uint256 _tokensDesired, address _to)
         external
         whenNotPaused
     {
@@ -103,7 +103,8 @@ contract PanamaJungle is ERC721, Ownable, Pausable, GSNRecipient {
         // Take money from account before so no chance of re entry attacks
         takeEco(_msgSender(), currentPrice * _tokensDesired);
 
-        uint256[] memory contractTokens = this.ownedAllotments(address(this));
+        // Create memory array of all tokens owned by the contract to pick randomly
+        uint256[] memory contractTokens = this.ownedEcoBlocks(address(this));
 
         require(
             contractTokens.length >= _tokensDesired,
@@ -111,13 +112,16 @@ contract PanamaJungle is ERC721, Ownable, Pausable, GSNRecipient {
         );
 
         for (uint256 i = 0; i < _tokensDesired; i++) {
-            // Select random token from contract tokens
+            // Select random token from owned contract tokens
             uint256 tokenId = contractTokens[random() % contractTokens.length];
-            nftAddress.safeTransferFrom(address(this), _to, tokenId); // Transfer token from contract to user
-            // Refresh the list of available allotments
-            // cant use pop() because its a memory array, we just have to start from scratch
+
+            // Transfer token from contract to user
+            nftAddress.safeTransferFrom(address(this), _to, tokenId); 
+
+            // Refresh the list of available EcoBlocks
+            // cant use pop() because contrarctTokens is memory array, we just have to start from scratch
             // gas cost is negligible however
-            contractTokens = this.ownedAllotments(address(this));
+            contractTokens = this.ownedEcoBlocks(address(this));
         }
     }
 
@@ -141,7 +145,7 @@ contract PanamaJungle is ERC721, Ownable, Pausable, GSNRecipient {
         return newAddonId;
     }
 
-    /** @dev Function to add vitrual microtransactions to an allotment
+    /** @dev Function to add vitrual microtransactions to an EcoBlock
      * @param tokenId id of the token to add the microtransactions to
      * @param addonId Desired name of the addon mapped to an id
      * @return All microtransactions on tokenId
@@ -161,49 +165,52 @@ contract PanamaJungle is ERC721, Ownable, Pausable, GSNRecipient {
         );
         require(_exists(tokenId), "Selected Token does not exist");
 
-        // Take money from account
+        // Take money from account before event emitted to prevent reentry attacks
         takeEco(_msgSender(), microAddons[addonId].price);
 
-        allotments[tokenId].addons.push(addonId); // Add addonId to token array
+        EcoBlocks[tokenId].addons.push(addonId); // Add addonId to token array
 
         emit AddedAddon(tokenId, addonId);
 
-        return allotments[tokenId].addons;
+        return EcoBlocks[tokenId].addons;
     }
 
-    /** @dev Function to get a list of owned allotment's IDs
-      * @param addr address to check owned allotments
-     * @return A uint array which contains IDs of all owned allotments
+   /** @dev Function to get a list of owned EcoBlock IDs
+     * @param addr address to check owned EcoBlocks
+     * @return A uint array which contains IDs of all owned EcoBlocks
      */
-    function ownedAllotments(address addr)
+    function ownedEcoBlocks(address addr)
         external
         view
         returns (uint256[] memory)
     {
-        uint256 allotmentCount = balanceOf(addr);
-        if (allotmentCount == 0) {
+        // Get total EcoBlocks owned by user to iterate through
+        uint256 EcoBlockCount = balanceOf(addr);
+        // Exit if no owned blocks
+        if (EcoBlockCount == 0) {
             return new uint256[](0);
-        } else {
-            uint256[] memory result = new uint256[](allotmentCount);
-            uint256 totalAllotments = allotments.length;
-            uint256 resultIndex = 0;
-            uint256 allotmentId = 0;
-            while (allotmentId < totalAllotments) {
-                if (ownerOf(allotmentId) == addr) {
-                    result[resultIndex] = allotmentId;
-                    resultIndex = resultIndex.add(1);
-                }
-                allotmentId = allotmentId.add(1);
-            }
-            return result;
         }
+
+        // Declare memory array and pre allocate array size to save gas
+        uint256[] memory result = new uint256[](EcoBlockCount);
+        uint256 totalEcoBlocks = EcoBlocks.length;
+        uint256 resultIndex = 0;
+        uint256 EcoBlockId = 0;
+        while (EcoBlockId < totalEcoBlocks) {
+            if (ownerOf(EcoBlockId) == addr) {
+                result[resultIndex] = EcoBlockId;
+                resultIndex = resultIndex.add(1);
+            }
+            EcoBlockId = EcoBlockId.add(1);
+        }
+        return result;
     }
 
-    /** @dev Function to retrieve a specific allotment's details.
-     * @param id ID of the allotment who's details will be retrieved
-     * @return Array id and geopoints of an allotment with all addons.
+    /** @dev Function to retrieve a specific EcoBlock's details.
+     * @param id ID of the EcoBlock who's details will be retrieved
+     * @return Array id and geopoints of an EcoBlock with all addons.
      */
-    function allotmentDetails(uint256 id)
+    function EcoBlockDetails(uint256 id)
         external
         view
         returns (
@@ -212,12 +219,12 @@ contract PanamaJungle is ERC721, Ownable, Pausable, GSNRecipient {
             uint16[] memory
         )
     {
-        return (id, allotments[id].geoMap, allotments[id].addons);
+        return (id, EcoBlocks[id].geoMap, EcoBlocks[id].addons);
     }
 
-    /** @dev Function to retrieve a specific allotment's details.
-     * @param id ID of the allotment who's details will be retrieved
-     * @return Array id and geopoints of an allotment with all addons.
+    /** @dev Function to retrieve a specific EcoBlock's details.
+     * @param id ID of the EcoBlock who's details will be retrieved
+     * @return Array id and geopoints of an EcoBlock with all addons.
      */
     function microDetails(uint256 id)
         external
@@ -232,7 +239,7 @@ contract PanamaJungle is ERC721, Ownable, Pausable, GSNRecipient {
     }
 
     // Relay Functions to allow users to avoid needing a wallet
-    // GSN func
+    // Required by GSN 
     // TODO: LIMIT USE OF THIS; ANY USER CAN DRAIN
     function acceptRelayedCall(
         address relay,
@@ -249,14 +256,13 @@ contract PanamaJungle is ERC721, Ownable, Pausable, GSNRecipient {
     }
 
     /** @dev Function to update _currentPrice
-      * @param _currentPrice new price of each allotment
+      * @param _currentPrice new price of each EcoBlock
      */
     function setCurrentPrice(uint256 _currentPrice) public onlyOwner {
         currentPrice = _currentPrice;
     }
 
     /** @dev Function to update _ecoBuxAddress
-     * @dev Throws if _ecoBuxAddress is not a contract address
      * @param _ecoBuxAddress new address of the EcoBux contract
      */
     function setEcoBuxAddress(address _ecoBuxAddress) public onlyOwner {
@@ -264,12 +270,13 @@ contract PanamaJungle is ERC721, Ownable, Pausable, GSNRecipient {
     }
 
     // Relay Requires this func even if unused
-    // GSN Func
+    // Required by GSN
     // TODO: Add stuff here
     function _preRelayedCall(bytes memory context) internal override returns (bytes32) {
         // TODO
     }
 
+    // Required by GSN
     function _postRelayedCall(
         bytes memory context,
         bool,
@@ -279,11 +286,12 @@ contract PanamaJungle is ERC721, Ownable, Pausable, GSNRecipient {
         // TODO
     }
 
-    // Needed by Openzeppelin GSN
+    // Required by GSN
     function _msgSender() internal view override(Context, GSNRecipient) returns (address payable) {
         return GSNRecipient._msgSender();
     }
 
+    // Required by GSN
     function _msgData() internal view override(Context, GSNRecipient) returns (bytes memory) {
         return GSNRecipient._msgData();
     }
@@ -308,11 +316,11 @@ contract PanamaJungle is ERC721, Ownable, Pausable, GSNRecipient {
     }
 
     /** @dev Function to create radnom numbers
-     * @dev True random numbers are not possible in eth, these numbers are feasibly predictable
-     * @dev Because the cost of predicting these numbers greatly outweighs the reward,
-     * @dev psuedoRandomness is okay here
-     * @dev Internal function only
-     * @return psuedoRandom nnumbers
+     * @dev True random numbers are not possible in eth, these numbers are predictable
+     * @dev psuedoRandomness is okay here because it only determines block id
+     * @dev cost to get an unpredictable number with oracles would be illogical and take away money from charity 
+     * @dev don't use this function for important number generation
+     * @return a predictable psuedorandom number
      */
     function random() internal returns (uint256) {
         uint256 randomNum = uint256(
@@ -322,18 +330,19 @@ contract PanamaJungle is ERC721, Ownable, Pausable, GSNRecipient {
         return randomNum;
     }
 
-    function _createAllotment(uint16[2][5] memory _allotment) internal {
+    function _createEcoBlock(uint16[2][5] memory _EcoBlock) internal {
+        // Need to initialize empty array to be used in EcoBlock struct
         uint16[] memory addons;
         // Create new struct containing geopoints and an empty array of addons
-        Allotment memory newAllotment = Allotment({
-            geoMap: _allotment,
+        EcoBlock memory newEcoBlock = EcoBlock({
+            geoMap: _EcoBlock,
             addons: addons
         });
-        // Set the new allotment's id
-        allotments.push(newAllotment);
-        uint256 newAllotmentId = allotments.length - 1;
-        // Mint the allotment
-        super._mint(address(this), newAllotmentId);
-        emit Transfer(address(0), address(this), newAllotmentId);
+        // Set the new EcoBlock's id
+        EcoBlocks.push(newEcoBlock);
+        uint256 newEcoBlockId = EcoBlocks.length - 1;
+        // Mint the EcoBlock
+        super._mint(address(this), newEcoBlockId);
+        emit Transfer(address(0), address(this), newEcoBlockId);
     }
 }
