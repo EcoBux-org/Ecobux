@@ -19,8 +19,10 @@
     "coveralls": "^3.1.0",
     "eslint": "^7.1.0",
     "eslint-config-google": "^0.14.0",
+    "eslint-config-prettier": "^6.11.0",
     "ganache-cli": "^6.9.1",
     "husky": "^4.2.5",
+    "npm-run-all": "^4.1.5",
     "prettier": "^2.0.5",
     "prettier-plugin-solidity": "^1.0.0-alpha.55",
     "solhint": "^3.0.0",
@@ -29,10 +31,15 @@
   },
   "scripts": {
     "compile": "npx oz compile",
-    "lint": "npx solhint \"contracts/**/*.sol\" && eslint test/",
     "gas": "npx ganache-cli --gasLimit 8000000 2> /dev/null 1> /dev/null &",
     "test": "npm run compile && npx mocha test --exit --timeout 3000 && npm run lint",
-    "coverage": "npx truffle run coverage"
+    "coverage": "npx truffle run coverage",
+    "lint": "npx npm-run-all lint:*",
+    "lint:solidity": "npx solhint \"contracts/**/*.sol\"",
+    "lint:javascript": "npx eslint test/",
+    "prettier": "npx npm-run-all prettier:*",
+    "prettier:solidity": "npx prettier --write \"contracts/**/*.sol\"",
+    "prettier:javascript": "npx prettier --write \"test/\""
   },
   "repository": {
     "type": "git",
@@ -49,7 +56,8 @@
   "homepage": "https://ecobux.org",
   "husky": {
     "hooks": {
-      "pre-commit": "npm run test && npm run lint"
+      "pre-commit": "npm run test",
+      "pre-push": "npm run prettier && npm run lint"
     }
   }
 }

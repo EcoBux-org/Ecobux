@@ -6,10 +6,9 @@ import "@openzeppelin/contracts/math/SafeMath.sol";
 
 // Interface contract to interact with EcoBux and ERC20 subcontracts
 import "./utils/Erc20.sol";
-// Interface contracts to interact with ERC721 subcontracts 
+// Interface contracts to interact with ERC721 subcontracts
 import "./utils/Erc721.sol";
 import "./utils/Erc721Verifiable.sol";
-
 
 // TODO: Add GSN
 contract MarketPlace {
@@ -19,7 +18,7 @@ contract MarketPlace {
     // Declare ecobux address
     ERC20 public ecoBux;
     // EcoBux Fee is a empty smart contract used to "burn" EcoBux
-    // All EcoBux in this contract is money given to EcoBux to cover gas fees and 
+    // All EcoBux in this contract is money given to EcoBux to cover gas fees and
     // Other operational costs.
     ERC20 public ecoBuxFee;
     uint256 public fee;
@@ -36,7 +35,7 @@ contract MarketPlace {
         ecoBuxFee = ERC20(_ecoBuxFeeAddress);
         // Base percentage of every executed order, in EcoBux
         // 2 = 2%
-        fee = 2; 
+        fee = 2;
     }
 
     event OrderCreated(
@@ -99,15 +98,9 @@ contract MarketPlace {
             "The contract is not authorized to manage the asset"
         );
 
-        // Create unique orderId 
+        // Create unique orderId
         bytes32 orderId = keccak256(
-            abi.encodePacked(
-                block.timestamp,
-                assetOwner,
-                assetId,
-                subTokenAddress,
-                ecoPrice
-            )
+            abi.encodePacked(block.timestamp, assetOwner, assetId, subTokenAddress, ecoPrice)
         );
 
         orderByAssetId[subTokenAddress][assetId] = Order({
@@ -117,39 +110,23 @@ contract MarketPlace {
             seller: assetOwner
         });
 
-        emit OrderCreated(
-            orderId,
-            assetId,
-            assetOwner,
-            subTokenAddress,
-            ecoPrice
-        );
+        emit OrderCreated(orderId, assetId, assetOwner, subTokenAddress, ecoPrice);
     }
 
     /** @dev Cancel existing order
      */
-    function cancelOrder(address subTokenAddress, uint256 assetId)
-        external
-    {
+    function cancelOrder(address subTokenAddress, uint256 assetId) external {
         Order memory order = orderByAssetId[subTokenAddress][assetId];
 
         require(order.id != 0, "Asset not published");
-        require(
-            order.seller == msg.sender,
-            "Unauthorized user"
-        );
+        require(order.seller == msg.sender, "Unauthorized user");
 
         bytes32 orderId = order.id;
         address orderSeller = order.seller;
         address orderTokenAddress = order.subTokenAddress;
         delete orderByAssetId[subTokenAddress][assetId];
 
-        emit OrderCancelled(
-            orderId,
-            assetId,
-            orderSeller,
-            orderTokenAddress
-        );
+        emit OrderCancelled(orderId, assetId, orderSeller, orderTokenAddress);
     }
 
     /** @dev Execute sale of order
@@ -157,8 +134,7 @@ contract MarketPlace {
     function executeOrder(
         address subTokenAddress,
         uint256 assetId,
-        uint256 price
-        //bytes calldata fingerprint
+        uint256 price //bytes calldata fingerprint
     ) external {
         _requireERC721(subTokenAddress);
 
@@ -170,14 +146,8 @@ contract MarketPlace {
         address seller = order.seller;
         require(seller != msg.sender, "Seller cannot buy asset");
         require(order.price == price, "The price is not correct");
-        require(
-            seller == nftRegistry.ownerOf(assetId),
-            "The seller not the owner"
-        );
-        require(
-            _availableECO(msg.sender) >= price,
-            "Not Enough EcoBux"
-        );
+        require(seller == nftRegistry.ownerOf(assetId), "The seller not the owner");
+        require(_availableECO(msg.sender) >= price, "Not Enough EcoBux");
 
         bytes32 orderId = order.id;
         delete orderByAssetId[subTokenAddress][assetId];
@@ -186,11 +156,11 @@ contract MarketPlace {
         if (fee > 0) {
             // Fee must be divided by 200 to split the fee between charity and EcoBux
             require(
-                _takeEco(msg.sender, subTokenAddress, uint (price * fee)/200),
+                _takeEco(msg.sender, subTokenAddress, uint256(price * fee) / 200),
                 "Transfering the charity fee to the charity failed"
             );
             require(
-                _takeEco(msg.sender, address(ecoBuxFee), uint (price * fee)/200),
+                _takeEco(msg.sender, address(ecoBuxFee), uint256(price * fee) / 200),
                 "Transfering the project fee to the EcoBux owner failed"
             );
         }
@@ -201,22 +171,15 @@ contract MarketPlace {
                 msg.sender,
                 seller,
                 // Get the price - fees and add one to the seller if the fee cant be split evenly
-                price*(100-fee)/100 + ((price * (100 - (fee/2)) % 10 != 0 ? 1 : 0))
+                (price * (100 - fee)) / 100 + (((price * (100 - (fee / 2))) % 10 != 0 ? 1 : 0))
             ),
             "Transfering the sale amount to the seller failed"
         );
 
-        // Transfer asset 
+        // Transfer asset
         nftRegistry.safeTransferFrom(seller, msg.sender, assetId);
 
-        emit OrderSuccessful(
-            orderId,
-            assetId,
-            seller,
-            subTokenAddress,
-            price,
-            msg.sender
-        );
+        emit OrderSuccessful(orderId, assetId, seller, subTokenAddress, price, msg.sender);
     }
 
     function _requireERC721(address subTokenAddress) internal view {
@@ -243,10 +206,7 @@ contract MarketPlace {
         uint256 _amount
     ) internal returns (bool) {
         require(_availableECO(_from) >= _amount, "Not enough EcoBux in takeEco");
-        require(
-            ecoBux.transferFrom(_from, _to, _amount),
-            "Transfer of EcoBux failed"
-        );
+        require(ecoBux.transferFrom(_from, _to, _amount), "Transfer of EcoBux failed");
         emit EcoTransfer(_from, _amount);
         return true;
     }

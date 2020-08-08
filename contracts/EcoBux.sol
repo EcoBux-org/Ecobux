@@ -9,7 +9,6 @@ import "@openzeppelin/contracts/GSN/GSNRecipient.sol";
 // Permission abstract contracts to control contract after deploy
 import "./utils/Ownable.sol";
 
-
 contract EcoBux is ERC20, Ownable, GSNRecipient {
     event Mint(address indexed to, uint256 amount);
 
@@ -37,7 +36,7 @@ contract EcoBux is ERC20, Ownable, GSNRecipient {
         uint256 nonce,
         bytes calldata approvalData,
         uint256 maxPossibleCharge
-    ) external view override returns (uint256, bytes memory) {
+    ) external override view returns (uint256, bytes memory) {
         return _approveRelayedCall();
     }
 
@@ -57,13 +56,12 @@ contract EcoBux is ERC20, Ownable, GSNRecipient {
         // TODO
     }
 
-
     // Needed by Openzeppelin GSN
-    function _msgSender() internal view override(Context, GSNRecipient) returns (address payable) {
+    function _msgSender() internal override(Context, GSNRecipient) view returns (address payable) {
         return GSNRecipient._msgSender();
     }
 
-    function _msgData() internal view override(Context, GSNRecipient) returns (bytes memory) {
+    function _msgData() internal override(Context, GSNRecipient) view returns (bytes memory) {
         return GSNRecipient._msgData();
     }
 
@@ -73,11 +71,7 @@ contract EcoBux is ERC20, Ownable, GSNRecipient {
      * @param _amount The amount of tokens to mint.
      * @return A boolean that indicates if the operation was successful.
      */
-    function createEco(address _to, uint256 _amount)
-        public
-        hasMintPermission
-        returns (bool)
-    {
+    function createEco(address _to, uint256 _amount) public hasMintPermission returns (bool) {
         super._mint(_to, _amount);
         emit Mint(_to, _amount); // Calls mint event
         return true;

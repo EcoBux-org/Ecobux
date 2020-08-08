@@ -14,7 +14,6 @@ import "./utils/Pausable.sol";
 // Interface contract to interact with EcoBux
 import "./utils/Erc20.sol";
 
-
 contract PanamaJungle is ERC721, Ownable, Pausable, GSNRecipient {
     // Prevents overflows with uint256
     using SafeMath for uint256;
@@ -22,17 +21,17 @@ contract PanamaJungle is ERC721, Ownable, Pausable, GSNRecipient {
     // Struct to represent one EcoBlock of land
     struct EcoBlock {
         // Array of lat/lng points to represent the boundaries of a point.
-        // Points use a linear transform to fit into uint16 values with neglible 
-        // loss in data, see the EcoBux GitHub page for info on converting these 
+        // Points use a linear transform to fit into uint16 values with neglible
+        // loss in data, see the EcoBux GitHub page for info on converting these
         // values
         uint16[2][5] geoMap;
-        // Array of microaddons for each EcoBlock 
+        // Array of microaddons for each EcoBlock
         // uint16 gives max 65535 possible unique microaddons
         uint16[] addons;
     }
 
     // List of EcoBlocks to store and iterate through
-    EcoBlock[] internal EcoBlocks;
+    EcoBlock[] internal ecoBlocks;
 
     // Struct defines microaddon properties for an EcoBlock
     struct MicroAddon {
@@ -47,10 +46,7 @@ contract PanamaJungle is ERC721, Ownable, Pausable, GSNRecipient {
     event NewAddon(uint256 addonId, uint16 price, bool buyable);
 
     // Event emitted when a microAddon is added to an EcoBlock
-    event AddedAddon(
-            uint256 tokenId,
-            uint16 addonId
-    );
+    event AddedAddon(uint256 tokenId, uint16 addonId);
 
     // Define contract's token address
     ERC721 public nftAddress = ERC721(address(this));
@@ -67,34 +63,31 @@ contract PanamaJungle is ERC721, Ownable, Pausable, GSNRecipient {
         ecoBuxAddress = ERC20(_ecoBuxAddress);
     }
 
-   /** @dev Function to group create EcoBlocks
-     * @param _EcoBlocks an array of arrays of points for creating each EcoBlock bounds
-       * Each lat lng point converts to having six decimal points, about 4 inches of precision.
-       * They are stored compressed in uint16 to save space
-       * And solidity does not handle fixed points well
-       * (precision is not accuracy, note https://gis.stackexchange.com/a/8674 )
+    /** @dev Function to group create EcoBlocks
+     * @param _ecoBlocks an array of arrays of points for creating each EcoBlock bounds
+     * Each lat lng point converts to having six decimal points, about 4 inches of precision.
+     * They are stored compressed in uint16 to save space
+     * And solidity does not handle fixed points well
+     * (precision is not accuracy, note https://gis.stackexchange.com/a/8674 )
      * @return success bool if the EcoBlock generation was successful
      */
-    function bulkCreateEcoBlocks(uint16[2][5][] calldata _EcoBlocks)
+    function bulkCreateEcoBlocks(uint16[2][5][] calldata _ecoBlocks)
         external
         onlyOwner
         returns (bool success)
     {
         // For each EcoBlock in initial array
-        for (uint256 i = 0; i < _EcoBlocks.length; i++) {
-            _createEcoBlock(_EcoBlocks[i]);
+        for (uint256 i = 0; i < _ecoBlocks.length; i++) {
+            _createEcoBlock(_ecoBlocks[i]);
         }
         return true;
     }
 
-  /** @dev Function to buy EcoBlocks
-    * @param _tokensDesired number of EcoBlocks to buy from contract
-    * @param _to address to send bought EcoBlocks
-    */
-    function buyEcoBlocks(uint256 _tokensDesired, address _to)
-        external
-        whenNotPaused
-    {
+    /** @dev Function to buy EcoBlocks
+     * @param _tokensDesired number of EcoBlocks to buy from contract
+     * @param _to address to send bought EcoBlocks
+     */
+    function buyEcoBlocks(uint256 _tokensDesired, address _to) external whenNotPaused {
         require(
             availableECO(_msgSender()) >= currentPrice * _tokensDesired,
             "Not enough available Ecobux!"
@@ -106,17 +99,14 @@ contract PanamaJungle is ERC721, Ownable, Pausable, GSNRecipient {
         // Create memory array of all tokens owned by the contract to pick randomly
         uint256[] memory contractTokens = this.ownedEcoBlocks(address(this));
 
-        require(
-            contractTokens.length >= _tokensDesired,
-            "Not enough available tokens!"
-        );
+        require(contractTokens.length >= _tokensDesired, "Not enough available tokens!");
 
         for (uint256 i = 0; i < _tokensDesired; i++) {
             // Select random token from owned contract tokens
             uint256 tokenId = contractTokens[random() % contractTokens.length];
 
             // Transfer token from contract to user
-            nftAddress.safeTransferFrom(address(this), _to, tokenId); 
+            nftAddress.safeTransferFrom(address(this), _to, tokenId);
 
             // Refresh the list of available EcoBlocks
             // cant use pop() because contrarctTokens is memory array, we just have to start from scratch
@@ -130,15 +120,8 @@ contract PanamaJungle is ERC721, Ownable, Pausable, GSNRecipient {
      * @param _buyable bool determining if the new microaddon can be bought by users
      * @return The new addon's ID
      */
-    function createMicro(uint16 _price, bool _buyable)
-        external
-        onlyOwner
-        returns (uint256)
-    {
-        MicroAddon memory newAddon = MicroAddon({
-            price: _price,
-            buyable: _buyable
-        });
+    function createMicro(uint16 _price, bool _buyable) external onlyOwner returns (uint256) {
+        MicroAddon memory newAddon = MicroAddon({price: _price, buyable: _buyable});
         microAddons.push(newAddon);
         uint256 newAddonId = microAddons.length - 1;
         emit NewAddon(newAddonId, _price, _buyable);
@@ -168,40 +151,36 @@ contract PanamaJungle is ERC721, Ownable, Pausable, GSNRecipient {
         // Take money from account before event emitted to prevent reentry attacks
         takeEco(_msgSender(), microAddons[addonId].price);
 
-        EcoBlocks[tokenId].addons.push(addonId); // Add addonId to token array
+        ecoBlocks[tokenId].addons.push(addonId); // Add addonId to token array
 
         emit AddedAddon(tokenId, addonId);
 
-        return EcoBlocks[tokenId].addons;
+        return ecoBlocks[tokenId].addons;
     }
 
-   /** @dev Function to get a list of owned EcoBlock IDs
+    /** @dev Function to get a list of owned EcoBlock IDs
      * @param addr address to check owned EcoBlocks
      * @return A uint array which contains IDs of all owned EcoBlocks
      */
-    function ownedEcoBlocks(address addr)
-        external
-        view
-        returns (uint256[] memory)
-    {
+    function ownedEcoBlocks(address addr) external view returns (uint256[] memory) {
         // Get total EcoBlocks owned by user to iterate through
-        uint256 EcoBlockCount = balanceOf(addr);
+        uint256 ecoBlockCount = balanceOf(addr);
         // Exit if no owned blocks
-        if (EcoBlockCount == 0) {
+        if (ecoBlockCount == 0) {
             return new uint256[](0);
         }
 
         // Declare memory array and pre allocate array size to save gas
-        uint256[] memory result = new uint256[](EcoBlockCount);
-        uint256 totalEcoBlocks = EcoBlocks.length;
+        uint256[] memory result = new uint256[](ecoBlockCount);
+        uint256 totalEcoBlocks = ecoBlocks.length;
         uint256 resultIndex = 0;
-        uint256 EcoBlockId = 0;
-        while (EcoBlockId < totalEcoBlocks) {
-            if (ownerOf(EcoBlockId) == addr) {
-                result[resultIndex] = EcoBlockId;
+        uint256 ecoBlockId = 0;
+        while (ecoBlockId < totalEcoBlocks) {
+            if (ownerOf(ecoBlockId) == addr) {
+                result[resultIndex] = ecoBlockId;
                 resultIndex = resultIndex.add(1);
             }
-            EcoBlockId = EcoBlockId.add(1);
+            ecoBlockId = ecoBlockId.add(1);
         }
         return result;
     }
@@ -219,7 +198,7 @@ contract PanamaJungle is ERC721, Ownable, Pausable, GSNRecipient {
             uint16[] memory
         )
     {
-        return (id, EcoBlocks[id].geoMap, EcoBlocks[id].addons);
+        return (id, ecoBlocks[id].geoMap, ecoBlocks[id].addons);
     }
 
     /** @dev Function to retrieve a specific EcoBlock's details.
@@ -239,7 +218,7 @@ contract PanamaJungle is ERC721, Ownable, Pausable, GSNRecipient {
     }
 
     // Relay Functions to allow users to avoid needing a wallet
-    // Required by GSN 
+    // Required by GSN
     // TODO: LIMIT USE OF THIS; ANY USER CAN DRAIN
     function acceptRelayedCall(
         address relay,
@@ -251,12 +230,12 @@ contract PanamaJungle is ERC721, Ownable, Pausable, GSNRecipient {
         uint256 nonce,
         bytes calldata approvalData,
         uint256 maxPossibleCharge
-    ) external view override returns (uint256, bytes memory) {
+    ) external override view returns (uint256, bytes memory) {
         return _approveRelayedCall();
     }
 
     /** @dev Function to update _currentPrice
-      * @param _currentPrice new price of each EcoBlock
+     * @param _currentPrice new price of each EcoBlock
      */
     function setCurrentPrice(uint256 _currentPrice) public onlyOwner {
         currentPrice = _currentPrice;
@@ -272,11 +251,13 @@ contract PanamaJungle is ERC721, Ownable, Pausable, GSNRecipient {
     // Relay Requires this func even if unused
     // Required by GSN
     // TODO: Add stuff here
+    // solhint-disable-next-line no-empty-blocks
     function _preRelayedCall(bytes memory context) internal override returns (bytes32) {
         // TODO
     }
 
     // Required by GSN
+    // solhint-disable-next-line no-empty-blocks
     function _postRelayedCall(
         bytes memory context,
         bool,
@@ -287,12 +268,12 @@ contract PanamaJungle is ERC721, Ownable, Pausable, GSNRecipient {
     }
 
     // Required by GSN
-    function _msgSender() internal view override(Context, GSNRecipient) returns (address payable) {
+    function _msgSender() internal override(Context, GSNRecipient) view returns (address payable) {
         return GSNRecipient._msgSender();
     }
 
     // Required by GSN
-    function _msgData() internal view override(Context, GSNRecipient) returns (bytes memory) {
+    function _msgData() internal override(Context, GSNRecipient) view returns (bytes memory) {
         return GSNRecipient._msgData();
     }
 
@@ -318,29 +299,28 @@ contract PanamaJungle is ERC721, Ownable, Pausable, GSNRecipient {
     /** @dev Function to create radnom numbers
      * @dev True random numbers are not possible in eth, these numbers are predictable
      * @dev psuedoRandomness is okay here because it only determines block id
-     * @dev cost to get an unpredictable number with oracles would be illogical and take away money from charity 
+     * @dev cost to get an unpredictable number with oracles would be illogical and take away money from charity
      * @dev don't use this function for important number generation
      * @return a predictable psuedorandom number
      */
+    /* solhint-disable not-rely-on-time */
     function random() internal returns (uint256) {
-        uint256 randomNum = uint256(
-            keccak256(abi.encodePacked(now, _msgSender(), randomNonce))
-        ) % 100;
+        uint256 randomNum = uint256(keccak256(abi.encodePacked(now, _msgSender(), randomNonce))) %
+            100;
         randomNonce++;
         return randomNum;
     }
+
+    /* solhint-enable not-rely-on-time */
 
     function _createEcoBlock(uint16[2][5] memory _EcoBlock) internal {
         // Need to initialize empty array to be used in EcoBlock struct
         uint16[] memory addons;
         // Create new struct containing geopoints and an empty array of addons
-        EcoBlock memory newEcoBlock = EcoBlock({
-            geoMap: _EcoBlock,
-            addons: addons
-        });
+        EcoBlock memory newEcoBlock = EcoBlock({geoMap: _EcoBlock, addons: addons});
         // Set the new EcoBlock's id
-        EcoBlocks.push(newEcoBlock);
-        uint256 newEcoBlockId = EcoBlocks.length - 1;
+        ecoBlocks.push(newEcoBlock);
+        uint256 newEcoBlockId = ecoBlocks.length - 1;
         // Mint the EcoBlock
         super._mint(address(this), newEcoBlockId);
         emit Transfer(address(0), address(this), newEcoBlockId);

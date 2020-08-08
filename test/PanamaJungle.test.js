@@ -1,61 +1,50 @@
 // Load dependencies
-const {accounts, contract, web3} = require('@openzeppelin/test-environment');
-const {
-  expectEvent,
-  expectRevert,
-  constants,
-} = require('@openzeppelin/test-helpers');
-const gsn = require('@openzeppelin/gsn-helpers');
-const {expect} = require('chai');
+const {accounts, contract, web3} = require("@openzeppelin/test-environment");
+const {expectEvent, expectRevert, constants} = require("@openzeppelin/test-helpers");
+const gsn = require("@openzeppelin/gsn-helpers");
+const {expect} = require("chai");
 const {ZERO_ADDRESS} = constants;
 
-
 // Load compiled artifacts
-const EcoBux = contract.fromArtifact('EcoBux');
-const PanamaJungle = contract.fromArtifact('PanamaJungle');
+const EcoBux = contract.fromArtifact("EcoBux");
+const PanamaJungle = contract.fromArtifact("PanamaJungle");
 
 const [admin, user, user2] = accounts;
 
 // Start test block
-describe('PanamaJungle', function() {
+describe("PanamaJungle", function () {
   // Some tests take a while to setup, increase timeout to allow the tests to complete
   this.timeout(150000);
-  beforeEach(async function() {
+  beforeEach(async function () {
     // Deploy a new PanamaJungle and EcoBux contract for each test
     EcoBuxInstance = await EcoBux.new({from: admin});
-    this.contract = await PanamaJungle.new(
-        EcoBuxInstance.address,
-        {from: admin},
-    );
+    this.contract = await PanamaJungle.new(EcoBuxInstance.address, {from: admin});
   });
 
-  context('Basic ERC721 Functions', function() {
-    it('has a name', async function() {
-      await expect(await this.contract.name()).to.equal('PanamaJungle');
+  context("Basic ERC721 Functions", function () {
+    it("has a name", async function () {
+      await expect(await this.contract.name()).to.equal("PanamaJungle");
     });
-    it('has a symbol', async function() {
-      await expect(await this.contract.symbol()).to.equal('PAJ');
+    it("has a symbol", async function () {
+      await expect(await this.contract.symbol()).to.equal("PAJ");
     });
   });
 
-  context('EcoBlock Creation Functions', function() {
-    beforeEach(async function() {
+  context("EcoBlock Creation Functions", function () {
+    beforeEach(async function () {
       // Fund contracts to cover gas cost
       await gsn.fundRecipient(web3, {recipient: EcoBuxInstance.address});
       await gsn.fundRecipient(web3, {recipient: this.contract.address});
 
       // Create EcoBlocks
-      EcoBlocks = require('./utils/EcoBlocks.json');
+      EcoBlocks = require("./utils/EcoBlocks.json");
       EcoBlocks = EcoBlocks.slice(0, 5);
 
-      const {tx} = await this.contract.bulkCreateEcoBlocks(
-          EcoBlocks,
-          {from: admin, useGSN: false},
-      );
-      await expectEvent.inTransaction(
-          tx, PanamaJungle, 'Transfer',
-          {from: ZERO_ADDRESS, to: this.contract.address},
-      );
+      const {tx} = await this.contract.bulkCreateEcoBlocks(EcoBlocks, {from: admin, useGSN: false});
+      await expectEvent.inTransaction(tx, PanamaJungle, "Transfer", {
+        from: ZERO_ADDRESS,
+        to: this.contract.address,
+      });
     });
     // TODO: test total number of EcoBlocks
     // Not an issue if not implemented, as long as 17 ecoBlocks can be made
@@ -76,328 +65,263 @@ describe('PanamaJungle', function() {
     });
     */
 
-    it('fails to create EcoBlocks if not owner', async function() {
+    it("fails to create EcoBlocks if not owner", async function () {
       await expectRevert(
-          this.contract.bulkCreateEcoBlocks(EcoBlocks, {from: user}),
-          'Only the owner can run this function',
+        this.contract.bulkCreateEcoBlocks(EcoBlocks, {from: user}),
+        "Only the owner can run this function"
       );
     });
 
-    it('buy EcoBlock with GSN', async function() {
+    it("buy EcoBlock with GSN", async function () {
       const startEth = await web3.eth.getBalance(user);
       const ecoMint = 25;
       await EcoBuxInstance.createEco(user, ecoMint, {from: admin});
-      await EcoBuxInstance.approve(
-          this.contract.address, ecoMint,
-          {from: user, useGSN: true},
-      );
-      await expect((await EcoBuxInstance.allowance(user, this.contract.address))
-          .toString()).to.equal(ecoMint.toString());
+      await EcoBuxInstance.approve(this.contract.address, ecoMint, {from: user, useGSN: true});
+      await expect(
+        (await EcoBuxInstance.allowance(user, this.contract.address)).toString()
+      ).to.equal(ecoMint.toString());
 
-      await this.contract.buyEcoBlocks(
-          1,
-          user,
-          {from: user, useGSN: true},
-      );
+      await this.contract.buyEcoBlocks(1, user, {from: user, useGSN: true});
 
       // Test if EcoBlock was purchased
       await expect(await this.contract.ownedEcoBlocks(user)).to.be.length(1);
 
       // Test if GSN worked
       // Note that we need to use strings to compare the 256 bit integers
-      await expect((await web3.eth.getBalance(user))
-          .toString()).to.equal(startEth);
+      await expect((await web3.eth.getBalance(user)).toString()).to.equal(startEth);
     });
 
-    it('buy multiple allotmnets', async function() {
+    it("buy multiple allotmnets", async function () {
       const startEth = await web3.eth.getBalance(user);
       const ecoMint = 75;
       await EcoBuxInstance.createEco(user, ecoMint, {from: admin});
-      await EcoBuxInstance.approve(
-          this.contract.address, ecoMint,
-          {from: user, useGSN: true},
-      );
-      await expect((await EcoBuxInstance.allowance(user, this.contract.address))
-          .toString()).to.equal(ecoMint.toString());
+      await EcoBuxInstance.approve(this.contract.address, ecoMint, {from: user, useGSN: true});
+      await expect(
+        (await EcoBuxInstance.allowance(user, this.contract.address)).toString()
+      ).to.equal(ecoMint.toString());
 
-      await this.contract.buyEcoBlocks(
-          3,
-          user,
-          {from: user, useGSN: true},
-      );
+      await this.contract.buyEcoBlocks(3, user, {from: user, useGSN: true});
 
       // Test if EcoBlock was purchased
       await expect(await this.contract.ownedEcoBlocks(user)).to.be.length(3);
 
       // Test if GSN worked
       // Note that we need to use strings to compare the 256 bit integers
-      await expect((await web3.eth.getBalance(user))
-          .toString()).to.equal(startEth);
+      await expect((await web3.eth.getBalance(user)).toString()).to.equal(startEth);
     });
 
-    it('fails to buy EcoBlocks if not enough EcoBux', async function() {
+    it("fails to buy EcoBlocks if not enough EcoBux", async function () {
       await expectRevert(
-          this.contract.buyEcoBlocks(1, user, {from: user}),
-          'Not enough available Ecobux!',
+        this.contract.buyEcoBlocks(1, user, {from: user}),
+        "Not enough available Ecobux!"
       );
     });
-    it('fails to buy EcoBlocks if not enough EcoBlocks', async function() {
+    it("fails to buy EcoBlocks if not enough EcoBlocks", async function () {
       const ecoMint = 2500;
       await EcoBuxInstance.createEco(user, ecoMint, {from: admin});
-      await EcoBuxInstance.approve(
-          this.contract.address, ecoMint,
-          {from: user},
-      );
+      await EcoBuxInstance.approve(this.contract.address, ecoMint, {from: user});
 
       await expectRevert(
-          this.contract.buyEcoBlocks(100, user, {from: user}),
-          'Not enough available tokens!',
+        this.contract.buyEcoBlocks(100, user, {from: user}),
+        "Not enough available tokens!"
       );
     });
-    it('return info about all owned EcoBlocks', async function() {
+    it("return info about all owned EcoBlocks", async function () {
       // Buy EcoBlock with GSN
       const ecoMint = 25;
       await EcoBuxInstance.createEco(user, ecoMint, {from: admin});
-      await EcoBuxInstance.approve(
-          this.contract.address, ecoMint,
-          {from: user, useGSN: true},
-      );
+      await EcoBuxInstance.approve(this.contract.address, ecoMint, {from: user, useGSN: true});
 
-      await this.contract.buyEcoBlocks(
-          1,
-          user,
-          {from: user, useGSN: true},
-      );
+      await this.contract.buyEcoBlocks(1, user, {from: user, useGSN: true});
 
       // Test if EcoBlock was purchased and correct info can be retrieved
       const ownedEcoBlock = await this.contract.ownedEcoBlocks(user);
-      const ecoBlockDetails = await this.contract.ecoBlockDetails(
-          ownedEcoBlock[0],
-      );
+      const ecoBlockDetails = await this.contract.ecoBlockDetails(ownedEcoBlock[0]);
       // Check if ID matches
-      await expect((ecoBlockDetails[0])
-          .toString()).to.equal(ownedEcoBlock.toString());
+      await expect(ecoBlockDetails[0].toString()).to.equal(ownedEcoBlock.toString());
       // Check if geoMap points match
-      await expect((ecoBlockDetails[1])
-          .toString()).to.equal((EcoBlocks[ownedEcoBlock]).toString());
+      await expect(ecoBlockDetails[1].toString()).to.equal(EcoBlocks[ownedEcoBlock].toString());
       // Check if addons match (should be empty array)
-      await expect((ecoBlockDetails[2]).toString()).to.equal('');
+      await expect(ecoBlockDetails[2].toString()).to.equal("");
     });
   });
-  context('Microaddons Functions', function() {
-    beforeEach(async function() {
+  context("Microaddons Functions", function () {
+    beforeEach(async function () {
       // Fund contracts to cover gas cost
       await gsn.fundRecipient(web3, {recipient: this.contract.address});
 
       // Create a single EcoBlock
-      EcoBlocks = require('./utils/EcoBlocks.json');
+      EcoBlocks = require("./utils/EcoBlocks.json");
       EcoBlocks = EcoBlocks.slice(0, 1);
 
-      const {tx} = await this.contract.bulkCreateEcoBlocks(
-          EcoBlocks,
-          {from: admin, useGSN: false},
-      );
-      await expectEvent.inTransaction(
-          tx, PanamaJungle, 'Transfer',
-          {from: ZERO_ADDRESS, to: this.contract.address},
-      );
+      const {tx} = await this.contract.bulkCreateEcoBlocks(EcoBlocks, {from: admin, useGSN: false});
+      await expectEvent.inTransaction(tx, PanamaJungle, "Transfer", {
+        from: ZERO_ADDRESS,
+        to: this.contract.address,
+      });
     });
-    it('create a microaddon', async function() {
+    it("create a microaddon", async function () {
       const price = 10;
       const buyable = true;
 
-      const {tx} = await this.contract.createMicro(
-          price,
-          buyable,
-          {from: admin},
-      );
-      await expectEvent.inTransaction(
-          tx, PanamaJungle, 'NewAddon',
-          {addonId: '0', price: price.toString(), buyable: buyable},
-      );
+      const {tx} = await this.contract.createMicro(price, buyable, {from: admin});
+      await expectEvent.inTransaction(tx, PanamaJungle, "NewAddon", {
+        addonId: "0",
+        price: price.toString(),
+        buyable: buyable,
+      });
     });
-    it('fail to create a microaddon if not owner', async function() {
+    it("fail to create a microaddon if not owner", async function () {
       await expectRevert(
-          this.contract.createMicro(1, 1, {from: user}),
-          'Only the owner can run this function',
+        this.contract.createMicro(1, 1, {from: user}),
+        "Only the owner can run this function"
       );
     });
-    it('buy a buyable microaddon', async function() {
+    it("buy a buyable microaddon", async function () {
       // Create a microaddon
       const price = 10;
       const buyable = true;
 
-      await this.contract.createMicro(
-          price,
-          buyable,
-          {from: admin},
-      );
+      await this.contract.createMicro(price, buyable, {from: admin});
 
       // Mint EcoBux
       const ecoMint = 35;
       await EcoBuxInstance.createEco(user, ecoMint, {from: admin});
-      await EcoBuxInstance.approve(
-          this.contract.address, ecoMint,
-          {from: user},
-      );
-      await expect((await EcoBuxInstance.allowance(user, this.contract.address))
-          .toString()).to.equal(ecoMint.toString());
+      await EcoBuxInstance.approve(this.contract.address, ecoMint, {from: user});
+      await expect(
+        (await EcoBuxInstance.allowance(user, this.contract.address)).toString()
+      ).to.equal(ecoMint.toString());
 
       // Buy the microaddon
       const {tx} = await this.contract.buyMicro(0, 0, {from: user});
 
-      await expectEvent.inTransaction(
-          tx, PanamaJungle, 'AddedAddon',
-      );
+      await expectEvent.inTransaction(tx, PanamaJungle, "AddedAddon");
     });
-    it('fail to buy a microaddon if not buyable', async function() {
+    it("fail to buy a microaddon if not buyable", async function () {
       // Create microaddon
       const price = 10;
       const buyable = false;
 
-      await this.contract.createMicro(
-          price,
-          buyable,
-          {from: admin},
-      );
+      await this.contract.createMicro(price, buyable, {from: admin});
 
       // Buy the microaddon (and fail)
       await expectRevert(
-          this.contract.buyMicro(0, 0, {from: user}),
-          'Selected microaddon does not exist or is not buyable',
+        this.contract.buyMicro(0, 0, {from: user}),
+        "Selected microaddon does not exist or is not buyable"
       );
     });
-    it('fail to buy microaddon if not enough ecobux', async function() {
+    it("fail to buy microaddon if not enough ecobux", async function () {
       // Create microaddon
       const price = 10;
       const buyable = true;
 
-      await this.contract.createMicro(
-          price,
-          buyable,
-          {from: admin},
-      );
+      await this.contract.createMicro(price, buyable, {from: admin});
 
       // Buy the microaddon (and fail)
       await expectRevert(
-          this.contract.buyMicro(0, 0, {from: user}),
-          'Not enough available EcoBux!',
+        this.contract.buyMicro(0, 0, {from: user}),
+        "Not enough available EcoBux!"
       );
     });
-    it('fail to buy microaddon if token does not exist', async function() {
+    it("fail to buy microaddon if token does not exist", async function () {
       // Create microaddon
       const price = 10;
       const buyable = true;
 
-      await this.contract.createMicro(
-          price,
-          buyable,
-          {from: admin},
-      );
+      await this.contract.createMicro(price, buyable, {from: admin});
 
       // Mint EcoBux
       const ecoMint = 35;
       await EcoBuxInstance.createEco(user, ecoMint, {from: admin});
-      await EcoBuxInstance.approve(
-          this.contract.address, ecoMint,
-          {from: user},
-      );
-      await expect((await EcoBuxInstance.allowance(user, this.contract.address))
-          .toString()).to.equal(ecoMint.toString());
+      await EcoBuxInstance.approve(this.contract.address, ecoMint, {from: user});
+      await expect(
+        (await EcoBuxInstance.allowance(user, this.contract.address)).toString()
+      ).to.equal(ecoMint.toString());
 
       // Buy the microaddon (and fail)
       await expectRevert(
-          this.contract.buyMicro(2, 0, {from: user}),
-          'Selected Token does not exist',
+        this.contract.buyMicro(2, 0, {from: user}),
+        "Selected Token does not exist"
       );
     });
   });
-  context('Admin Functions', function() {
-    it('set a new EcoBlock price', async function() {
+  context("Admin Functions", function () {
+    it("set a new EcoBlock price", async function () {
       const newPrice = 1000;
       await this.contract.setCurrentPrice(newPrice, {from: admin});
 
-      await expect((await this.contract.currentPrice.call()).toString())
-          .to.equal(newPrice.toString());
-    });
-    it('fail to set a new price if not owner', async function() {
-      const newPrice = 1000;
-      await expectRevert(
-          this.contract.setCurrentPrice(newPrice, {from: user}),
-          'Only the owner can run this function',
+      await expect((await this.contract.currentPrice.call()).toString()).to.equal(
+        newPrice.toString()
       );
     });
-    it('update EcoBux address', async function() {
+    it("fail to set a new price if not owner", async function () {
+      const newPrice = 1000;
+      await expectRevert(
+        this.contract.setCurrentPrice(newPrice, {from: user}),
+        "Only the owner can run this function"
+      );
+    });
+    it("update EcoBux address", async function () {
       const newAddress = user2;
       await this.contract.setEcoBuxAddress(newAddress, {from: admin});
 
-      await expect((await this.contract.ecoBuxAddress.call()).toString())
-          .to.equal(newAddress.toString());
+      await expect((await this.contract.ecoBuxAddress.call()).toString()).to.equal(
+        newAddress.toString()
+      );
     });
-    it('fail to update EcoBux address if not owner', async function() {
+    it("fail to update EcoBux address if not owner", async function () {
       const newAddress = user2;
       await expectRevert(
-          this.contract.setEcoBuxAddress(newAddress, {from: user}),
-          'Only the owner can run this function',
+        this.contract.setEcoBuxAddress(newAddress, {from: user}),
+        "Only the owner can run this function"
       );
     });
-    it('transfer owership of contract', async function() {
+    it("transfer owership of contract", async function () {
       const newAddress = user2;
-      const {tx} = await this.contract.transferOwnership(
-          newAddress,
-          {from: admin},
-      );
+      const {tx} = await this.contract.transferOwnership(newAddress, {from: admin});
 
-      await expectEvent.inTransaction(
-          tx, PanamaJungle,
-          'OwnershipTransferred',
-      );
+      await expectEvent.inTransaction(tx, PanamaJungle, "OwnershipTransferred");
     });
-    it('fail to transfer ownership if to 0 address', async function() {
+    it("fail to transfer ownership if to 0 address", async function () {
       const newAddress = ZERO_ADDRESS;
       await expectRevert(
-          this.contract.transferOwnership(newAddress, {from: admin}),
-          'Ownership cannot be transferred to zero address',
+        this.contract.transferOwnership(newAddress, {from: admin}),
+        "Ownership cannot be transferred to zero address"
       );
     });
-    it('fail to transfer ownership if not owner', async function() {
+    it("fail to transfer ownership if not owner", async function () {
       const newAddress = user2;
       await expectRevert(
-          this.contract.setEcoBuxAddress(newAddress, {from: user}),
-          'Only the owner can run this function',
+        this.contract.setEcoBuxAddress(newAddress, {from: user}),
+        "Only the owner can run this function"
       );
     });
-    it('fail to relinquish ownership if not owner', async function() {
+    it("fail to relinquish ownership if not owner", async function () {
       await expectRevert(
-          this.contract.renounceOwnership({from: user}),
-          'Only the owner can run this function',
+        this.contract.renounceOwnership({from: user}),
+        "Only the owner can run this function"
       );
     });
-    it('not allow contract functions if paused', async function() {
+    it("not allow contract functions if paused", async function () {
       // Pause contract
       await this.contract.pause({from: admin});
       // Cannot execute normal functions
       await expectRevert(
-          this.contract.buyEcoBlocks(0, user, {from: user}),
-          'Function cannot be used while contract is paused',
+        this.contract.buyEcoBlocks(0, user, {from: user}),
+        "Function cannot be used while contract is paused"
       );
     });
-    it('only allow contract functions if not paused', async function() {
+    it("only allow contract functions if not paused", async function () {
       // Cannot execute pause only functions
       await expectRevert(
-          this.contract.unpause({from: admin}),
-          'Function cannot be used while contract is not paused',
+        this.contract.unpause({from: admin}),
+        "Function cannot be used while contract is not paused"
       );
     });
-    it('relinquish owership of contract', async function() {
-      const {tx} = await this.contract.renounceOwnership(
-          {from: admin},
-      );
+    it("relinquish owership of contract", async function () {
+      const {tx} = await this.contract.renounceOwnership({from: admin});
 
-      await expectEvent.inTransaction(
-          tx, PanamaJungle,
-          'OwnershipRenounced',
-      );
+      await expectEvent.inTransaction(tx, PanamaJungle, "OwnershipRenounced");
     });
   });
 });

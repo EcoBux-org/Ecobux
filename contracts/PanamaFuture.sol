@@ -12,7 +12,6 @@ import "@openzeppelin/contracts/GSN/GSNRecipient.sol";
 import "./utils/Ownable.sol";
 import "./utils/Pausable.sol";
 
-
 contract PanamaFuture is ERC20, Ownable, Pausable, GSNRecipient {
     using SafeMath for uint256;
 
@@ -32,11 +31,7 @@ contract PanamaFuture is ERC20, Ownable, Pausable, GSNRecipient {
     /** @dev Fuction to interface with creating and dispensing Future
      * @param _amount Number of Future desired
      */
-    function buyFuture(uint256 _amount)
-        external
-        whenNotPaused
-        returns (uint256)
-    {
+    function buyFuture(uint256 _amount) external whenNotPaused returns (uint256) {
         // Require at least current price * tokens
         require(availableECO(_msgSender()) >= _amount * currentPrice, "Not Enough EcoBux");
 
@@ -63,7 +58,7 @@ contract PanamaFuture is ERC20, Ownable, Pausable, GSNRecipient {
         uint256 nonce,
         bytes calldata approvalData,
         uint256 maxPossibleCharge
-    ) external view override returns (uint256, bytes memory) {
+    ) external override view returns (uint256, bytes memory) {
         return _approveRelayedCall();
     }
 
@@ -98,14 +93,13 @@ contract PanamaFuture is ERC20, Ownable, Pausable, GSNRecipient {
         // TODO
     }
 
-
     // Required by GSN
-    function _msgSender() internal view override(Context, GSNRecipient) returns (address payable) {
+    function _msgSender() internal override(Context, GSNRecipient) view returns (address payable) {
         return GSNRecipient._msgSender();
     }
 
     // Required by GSN
-    function _msgData() internal view override(Context, GSNRecipient) returns (bytes memory) {
+    function _msgData() internal override(Context, GSNRecipient) view returns (bytes memory) {
         return GSNRecipient._msgData();
     }
 
