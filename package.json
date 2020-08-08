@@ -26,9 +26,9 @@
   },
   "scripts": {
     "compile": "npx oz compile",
-    "lint": "npx solhint contracts/**/*.sol && eslint test/",
+    "lint": "npx solhint \"contracts/**/*.sol\" && eslint test/",
     "gas": "npx ganache-cli --gasLimit 8000000 2> /dev/null 1> /dev/null &",
-    "test": "npm run compile && npx mocha test --exit --timeout 3000 && npx solhint contracts/**/*.sol",
+    "test": "npm run compile && npx mocha test --exit --timeout 3000 && npm run lint",
     "coverage": "npx truffle run coverage"
   },
   "repository": {
