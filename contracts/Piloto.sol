@@ -14,7 +14,7 @@ import "./utils/Pausable.sol";
 // Interface contract to interact with EcoBux
 import "./utils/Erc20.sol";
 
-contract PanamaJungle is ERC721, Ownable, Pausable, GSNRecipient {
+contract Piloto is ERC721, Ownable, Pausable, GSNRecipient {
     // Prevents overflows with uint256
     using SafeMath for uint256;
 
@@ -59,7 +59,7 @@ contract PanamaJungle is ERC721, Ownable, Pausable, GSNRecipient {
     ERC20 public ecoBuxAddress;
 
     // Start contract with EcoBux address as parameter
-    constructor(address _ecoBuxAddress) public ERC721("PanamaJungle", "PAJ") {
+    constructor(address _ecoBuxAddress) public ERC721("Piloto", "PILO") {
         ecoBuxAddress = ERC20(_ecoBuxAddress);
     }
 
@@ -310,7 +310,6 @@ contract PanamaJungle is ERC721, Ownable, Pausable, GSNRecipient {
         randomNonce++;
         return randomNum;
     }
-
     /* solhint-enable not-rely-on-time */
 
     function _createEcoBlock(uint16[2][5] memory _EcoBlock) internal {

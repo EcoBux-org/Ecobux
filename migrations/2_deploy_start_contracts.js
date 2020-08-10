@@ -1,15 +1,15 @@
 const EcoBux = artifacts.require("EcoBux");
 const EcoBuxFee = artifacts.require("EcoBuxFee");
 const MarketPlace = artifacts.require("MarketPlace");
-const PanamaJungle = artifacts.require("PanamaJungle");
-const PanamaFuture = artifacts.require("PanamaFuture");
+const Piloto = artifacts.require("Piloto");
+const PilotoFuture = artifacts.require("PilotoFuture");
 
 module.exports = function (deployer, network, accounts) {
   deployer.then(async () => {
     await deployer.deploy(EcoBux);
     await deployer.deploy(EcoBuxFee);
     await deployer.deploy(MarketPlace, EcoBux.address, EcoBuxFee.address);
-    await deployer.deploy(PanamaFuture, EcoBux.address);
-    await deployer.deploy(PanamaJungle, EcoBux.address);
+    await deployer.deploy(PilotoFuture, EcoBux.address);
+    await deployer.deploy(Piloto, EcoBux.address);
   });
 };

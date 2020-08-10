@@ -7,26 +7,26 @@ const {ZERO_ADDRESS} = constants;
 
 // Load compiled artifacts
 const EcoBux = contract.fromArtifact("EcoBux");
-const PanamaJungle = contract.fromArtifact("PanamaJungle");
+const Piloto = contract.fromArtifact("Piloto");
 
 const [admin, user, user2] = accounts;
 
 // Start test block
-describe("PanamaJungle", function () {
+describe("Piloto", function () {
   // Some tests take a while to setup, increase timeout to allow the tests to complete
   this.timeout(150000);
   beforeEach(async function () {
-    // Deploy a new PanamaJungle and EcoBux contract for each test
+    // Deploy a new Piloto and EcoBux contract for each test
     EcoBuxInstance = await EcoBux.new({from: admin});
-    this.contract = await PanamaJungle.new(EcoBuxInstance.address, {from: admin});
+    this.contract = await Piloto.new(EcoBuxInstance.address, {from: admin});
   });
 
   context("Basic ERC721 Functions", function () {
     it("has a name", async function () {
-      await expect(await this.contract.name()).to.equal("PanamaJungle");
+      await expect(await this.contract.name()).to.equal("Piloto");
     });
     it("has a symbol", async function () {
-      await expect(await this.contract.symbol()).to.equal("PAJ");
+      await expect(await this.contract.symbol()).to.equal("PILO");
     });
   });
 
@@ -41,7 +41,7 @@ describe("PanamaJungle", function () {
       EcoBlocks = EcoBlocks.slice(0, 5);
 
       const {tx} = await this.contract.bulkCreateEcoBlocks(EcoBlocks, {from: admin, useGSN: false});
-      await expectEvent.inTransaction(tx, PanamaJungle, "Transfer", {
+      await expectEvent.inTransaction(tx, Piloto, "Transfer", {
         from: ZERO_ADDRESS,
         to: this.contract.address,
       });
@@ -58,7 +58,7 @@ describe("PanamaJungle", function () {
             {from: admin, useGSN: false},
         );
         expectEvent.inTransaction(
-            tx, PanamaJungle, 'Transfer',
+            tx, Piloto, 'Transfer',
             {from: ZERO_ADDRESS, to: this.contract.address},
         );
       }
@@ -155,7 +155,7 @@ describe("PanamaJungle", function () {
       EcoBlocks = EcoBlocks.slice(0, 1);
 
       const {tx} = await this.contract.bulkCreateEcoBlocks(EcoBlocks, {from: admin, useGSN: false});
-      await expectEvent.inTransaction(tx, PanamaJungle, "Transfer", {
+      await expectEvent.inTransaction(tx, Piloto, "Transfer", {
         from: ZERO_ADDRESS,
         to: this.contract.address,
       });
@@ -165,7 +165,7 @@ describe("PanamaJungle", function () {
       const buyable = true;
 
       const {tx} = await this.contract.createMicro(price, buyable, {from: admin});
-      await expectEvent.inTransaction(tx, PanamaJungle, "NewAddon", {
+      await expectEvent.inTransaction(tx, Piloto, "NewAddon", {
         addonId: "0",
         price: price.toString(),
         buyable: buyable,
@@ -195,7 +195,7 @@ describe("PanamaJungle", function () {
       // Buy the microaddon
       const {tx} = await this.contract.buyMicro(0, 0, {from: user});
 
-      await expectEvent.inTransaction(tx, PanamaJungle, "AddedAddon");
+      await expectEvent.inTransaction(tx, Piloto, "AddedAddon");
     });
     it("fail to buy a microaddon if not buyable", async function () {
       // Create microaddon
@@ -280,7 +280,7 @@ describe("PanamaJungle", function () {
       const newAddress = user2;
       const {tx} = await this.contract.transferOwnership(newAddress, {from: admin});
 
-      await expectEvent.inTransaction(tx, PanamaJungle, "OwnershipTransferred");
+      await expectEvent.inTransaction(tx, Piloto, "OwnershipTransferred");
     });
     it("fail to transfer ownership if to 0 address", async function () {
       const newAddress = ZERO_ADDRESS;
@@ -321,7 +321,7 @@ describe("PanamaJungle", function () {
     it("relinquish owership of contract", async function () {
       const {tx} = await this.contract.renounceOwnership({from: admin});
 
-      await expectEvent.inTransaction(tx, PanamaJungle, "OwnershipRenounced");
+      await expectEvent.inTransaction(tx, Piloto, "OwnershipRenounced");
     });
   });
 });

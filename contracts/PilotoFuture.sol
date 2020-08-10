@@ -12,7 +12,8 @@ import "@openzeppelin/contracts/GSN/GSNRecipient.sol";
 import "./utils/Ownable.sol";
 import "./utils/Pausable.sol";
 
-contract PanamaFuture is ERC20, Ownable, Pausable, GSNRecipient {
+contract PilotoFuture is ERC20, Ownable, Pausable, GSNRecipient {
+    // Prevents overflows with uint256
     using SafeMath for uint256;
 
     uint256 public currentPrice;
@@ -22,7 +23,7 @@ contract PanamaFuture is ERC20, Ownable, Pausable, GSNRecipient {
     event EcoTransfer(address owner, uint256 amount);
 
     // Start contract with new EcoBux address
-    constructor(address _ecoBuxAddress) public ERC20("PanamaFuture", "PAF") {
+    constructor(address _ecoBuxAddress) public ERC20("PilotoFuture", "PILOF") {
         _setupDecimals(0);
         ecoBuxAddress = ERC20(_ecoBuxAddress);
         currentPrice = 25; // Default to 25 ECOB per FUTURE. Changed by setCurrentPrice()

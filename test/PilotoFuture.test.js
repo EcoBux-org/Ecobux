@@ -8,23 +8,23 @@ const {expect} = require("chai");
 
 // Load compiled artifacts
 const EcoBux = contract.fromArtifact("EcoBux");
-const PanamaFuture = contract.fromArtifact("PanamaFuture");
+const PilotoFuture = contract.fromArtifact("PilotoFuture");
 
 const [admin, user] = accounts;
 
 // Start test block
-describe("PanamaFuture", function () {
+describe("PilotoFuture", function () {
   beforeEach(async function () {
     EcoBuxInstance = await EcoBux.new({from: admin});
-    this.contract = await PanamaFuture.new(EcoBuxInstance.address, {from: admin});
+    this.contract = await PilotoFuture.new(EcoBuxInstance.address, {from: admin});
   });
 
   context("Basic ERC20 Functions", function () {
     it("has a name", async function () {
-      await expect(await this.contract.name()).to.equal("PanamaFuture");
+      await expect(await this.contract.name()).to.equal("PilotoFuture");
     });
     it("has a symbol", async function () {
-      await expect(await this.contract.symbol()).to.equal("PAF");
+      await expect(await this.contract.symbol()).to.equal("PILOF");
     });
     it("has 0 decimals", async function () {
       await expect((await this.contract.decimals()).toString()).to.equal("0");

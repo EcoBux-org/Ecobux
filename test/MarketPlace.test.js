@@ -8,7 +8,7 @@ const {ZERO_ADDRESS} = constants;
 const EcoBux = contract.fromArtifact("EcoBux");
 const EcoBuxFee = contract.fromArtifact("EcoBuxFee");
 const MarketPlace = contract.fromArtifact("MarketPlace");
-const PanamaJungle = contract.fromArtifact("PanamaJungle");
+const Piloto = contract.fromArtifact("Piloto");
 
 const [admin, seller, buyer, buyer2] = accounts;
 
@@ -18,27 +18,27 @@ describe("MarketPlace", function () {
   beforeEach(async function () {
     EcoBuxInstance = await EcoBux.new({from: admin});
     EcoBuxFeeInstance = await EcoBuxFee.new({from: admin});
-    PanamaJungleInstance = await PanamaJungle.new(EcoBuxInstance.address, {from: admin});
+    PilotoInstance = await Piloto.new(EcoBuxInstance.address, {from: admin});
     this.contract = await MarketPlace.new(EcoBuxInstance.address, EcoBuxFeeInstance.address, {
       from: admin,
     });
 
     // Fund contracts to cover gas cost
     await gsn.fundRecipient(web3, {recipient: EcoBuxInstance.address});
-    await gsn.fundRecipient(web3, {recipient: PanamaJungleInstance.address});
+    await gsn.fundRecipient(web3, {recipient: PilotoInstance.address});
     await gsn.fundRecipient(web3, {recipient: this.contract.address});
 
     // Create a single EcoBlock
     EcoBlocks = require("./utils/EcoBlocks.json");
     EcoBlocks = EcoBlocks.slice(0, 1);
 
-    const {tx} = await PanamaJungleInstance.bulkCreateEcoBlocks(EcoBlocks, {
+    const {tx} = await PilotoInstance.bulkCreateEcoBlocks(EcoBlocks, {
       from: admin,
       useGSN: false,
     });
-    await expectEvent.inTransaction(tx, PanamaJungle, "Transfer", {
+    await expectEvent.inTransaction(tx, Piloto, "Transfer", {
       from: ZERO_ADDRESS,
-      to: PanamaJungleInstance.address,
+      to: PilotoInstance.address,
     });
   });
 
@@ -51,27 +51,27 @@ describe("MarketPlace", function () {
       const ecoMint = 25; // Amount of EcoBux to mint: Used to buy EcoBlock
       const ecoPrice = 25; // Cost of sell order
       await EcoBuxInstance.createEco(seller, ecoMint, {from: admin});
-      await EcoBuxInstance.approve(PanamaJungleInstance.address, ecoMint, {
+      await EcoBuxInstance.approve(PilotoInstance.address, ecoMint, {
         from: seller,
         useGSN: true,
       });
       await expect(
-        (await EcoBuxInstance.allowance(seller, PanamaJungleInstance.address)).toString()
+        (await EcoBuxInstance.allowance(seller, PilotoInstance.address)).toString()
       ).to.equal(ecoMint.toString());
-      await PanamaJungleInstance.buyEcoBlocks(1, seller, {from: seller, useGSN: true});
+      await PilotoInstance.buyEcoBlocks(1, seller, {from: seller, useGSN: true});
 
       // Bought EcoBlock 0
       ownedEcoBlock = 0;
 
       // Approve MarketPlace Contract to manage asset
-      await PanamaJungleInstance.approve(this.contract.address, ownedEcoBlock, {
+      await PilotoInstance.approve(this.contract.address, ownedEcoBlock, {
         from: seller,
         useGSN: true,
       });
 
       // Create Sell Order
       const {tx} = await this.contract.createOrder(
-        PanamaJungleInstance.address,
+        PilotoInstance.address,
         ownedEcoBlock,
         ecoPrice,
         {from: seller, useGSN: false}
@@ -79,7 +79,7 @@ describe("MarketPlace", function () {
       await expectEvent.inTransaction(tx, MarketPlace, "OrderCreated", {
         assetId: ownedEcoBlock.toString(),
         assetOwner: seller,
-        subTokenAddress: PanamaJungleInstance.address,
+        subTokenAddress: PilotoInstance.address,
         ecoPrice: ecoPrice.toString(),
       });
     });
@@ -97,7 +97,7 @@ describe("MarketPlace", function () {
       const ownedEcoBlock = 0;
 
       await expectRevert(
-        this.contract.createOrder(PanamaJungleInstance.address, ownedEcoBlock, ecoPrice, {
+        this.contract.createOrder(PilotoInstance.address, ownedEcoBlock, ecoPrice, {
           from: seller,
         }),
         "Only the owner can make orders"
@@ -110,16 +110,16 @@ describe("MarketPlace", function () {
       const ecoPrice = 25; // Cost of sell order
       await EcoBuxInstance.createEco(seller, ecoMint, {from: admin});
       await EcoBuxInstance.approve(
-          PanamaJungleInstance.address, ecoMint,
+          PilotoInstance.address, ecoMint,
           {from: seller, useGSN: true},
       );
       await expect((
         await EcoBuxInstance.allowance(
             seller,
-            PanamaJungleInstance.address,
+            PilotoInstance.address,
         )).toString(),
       ).to.equal(ecoMint.toString());
-      await PanamaJungleInstance.buyEcoBlocks(
+      await PilotoInstance.buyEcoBlocks(
           1,
           seller,
           {from: seller, useGSN: true},
@@ -129,7 +129,7 @@ describe("MarketPlace", function () {
       const ownedEcoBlock = 0;
 
       // Approve MarketPlace Contract to manage asset
-      await PanamaJungleInstance.approve(
+      await PilotoInstance.approve(
           this.contract.address,
           ownedEcoBlock,
           {from: seller, useGSN: true},
@@ -137,7 +137,7 @@ describe("MarketPlace", function () {
 
       await expectRevert(
           this.contract.createOrder(
-              PanamaJungleInstance.address,
+              PilotoInstance.address,
               ownedEcoBlock,
               ecoPrice,
               {from: seller},
@@ -151,20 +151,20 @@ describe("MarketPlace", function () {
       const ecoMint = 25; // Amount of EcoBux to mint: Used to buy EcoBlock
       const ecoPrice = 25; // Cost of sell order
       await EcoBuxInstance.createEco(seller, ecoMint, {from: admin});
-      await EcoBuxInstance.approve(PanamaJungleInstance.address, ecoMint, {
+      await EcoBuxInstance.approve(PilotoInstance.address, ecoMint, {
         from: seller,
         useGSN: true,
       });
       await expect(
-        (await EcoBuxInstance.allowance(seller, PanamaJungleInstance.address)).toString()
+        (await EcoBuxInstance.allowance(seller, PilotoInstance.address)).toString()
       ).to.equal(ecoMint.toString());
-      await PanamaJungleInstance.buyEcoBlocks(1, seller, {from: seller, useGSN: true});
+      await PilotoInstance.buyEcoBlocks(1, seller, {from: seller, useGSN: true});
 
       // EcoBlock 0 is the only one available
       const ownedEcoBlock = 0;
 
       await expectRevert(
-        this.contract.createOrder(PanamaJungleInstance.address, ownedEcoBlock, ecoPrice, {
+        this.contract.createOrder(PilotoInstance.address, ownedEcoBlock, ecoPrice, {
           from: seller,
         }),
         "The contract is not authorized to manage the asset"
@@ -179,27 +179,27 @@ describe("MarketPlace", function () {
       const ecoMint = 25; // Amount of EcoBux to mint: Used to buy EcoBlock
       const ecoPrice = 25; // Cost of sell order
       await EcoBuxInstance.createEco(seller, ecoMint, {from: admin});
-      await EcoBuxInstance.approve(PanamaJungleInstance.address, ecoMint, {
+      await EcoBuxInstance.approve(PilotoInstance.address, ecoMint, {
         from: seller,
         useGSN: true,
       });
       await expect(
-        (await EcoBuxInstance.allowance(seller, PanamaJungleInstance.address)).toString()
+        (await EcoBuxInstance.allowance(seller, PilotoInstance.address)).toString()
       ).to.equal(ecoMint.toString());
-      await PanamaJungleInstance.buyEcoBlocks(1, seller, {from: seller, useGSN: true});
+      await PilotoInstance.buyEcoBlocks(1, seller, {from: seller, useGSN: true});
 
       // Bought EcoBlock 0
       ownedEcoBlock = 0;
 
       // Approve MarketPlace Contract to manage asset
-      await PanamaJungleInstance.approve(this.contract.address, ownedEcoBlock, {
+      await PilotoInstance.approve(this.contract.address, ownedEcoBlock, {
         from: seller,
         useGSN: true,
       });
 
       // Create Sell Order
       const {tx} = await this.contract.createOrder(
-        PanamaJungleInstance.address,
+        PilotoInstance.address,
         ownedEcoBlock,
         ecoPrice,
         {from: seller, useGSN: false}
@@ -207,13 +207,13 @@ describe("MarketPlace", function () {
       await expectEvent.inTransaction(tx, MarketPlace, "OrderCreated", {
         assetId: ownedEcoBlock.toString(),
         assetOwner: seller,
-        subTokenAddress: PanamaJungleInstance.address,
+        subTokenAddress: PilotoInstance.address,
         ecoPrice: ecoPrice.toString(),
       });
     });
     it("cancel sell order", async function () {
       // Create Sell Order
-      const {tx} = await this.contract.cancelOrder(PanamaJungleInstance.address, ownedEcoBlock, {
+      const {tx} = await this.contract.cancelOrder(PilotoInstance.address, ownedEcoBlock, {
         from: seller,
         useGSN: false,
       });
@@ -221,18 +221,18 @@ describe("MarketPlace", function () {
       await expectEvent.inTransaction(tx, MarketPlace, "OrderCancelled", {
         assetId: ownedEcoBlock.toString(),
         seller: seller,
-        subTokenAddress: PanamaJungleInstance.address,
+        subTokenAddress: PilotoInstance.address,
       });
     });
     it("fail to cancel sell order if not owner of order", async function () {
       await expectRevert(
-        this.contract.cancelOrder(PanamaJungleInstance.address, ownedEcoBlock, {from: buyer}),
+        this.contract.cancelOrder(PilotoInstance.address, ownedEcoBlock, {from: buyer}),
         "Unauthorized user"
       );
     });
     it("fail to cancel sell order if asset not published", async function () {
       await expectRevert(
-        this.contract.cancelOrder(PanamaJungleInstance.address, 5138008, {from: buyer}),
+        this.contract.cancelOrder(PilotoInstance.address, 5138008, {from: buyer}),
         "Asset not published"
       );
     });
@@ -245,14 +245,14 @@ describe("MarketPlace", function () {
       this.ecoMint = 25; // Amount of EcoBux to mint: Used to buy EcoBlock
       this.ecoPrice = 100; // Cost of sell order (1 EcoBux)
       await EcoBuxInstance.createEco(seller, this.ecoMint, {from: admin});
-      await EcoBuxInstance.approve(PanamaJungleInstance.address, this.ecoMint, {
+      await EcoBuxInstance.approve(PilotoInstance.address, this.ecoMint, {
         from: seller,
         useGSN: true,
       });
       await expect(
-        (await EcoBuxInstance.allowance(seller, PanamaJungleInstance.address)).toString()
+        (await EcoBuxInstance.allowance(seller, PilotoInstance.address)).toString()
       ).to.equal(this.ecoMint.toString());
-      await PanamaJungleInstance.buyEcoBlocks(
+      await PilotoInstance.buyEcoBlocks(
         1, // Buy a single EcoBlock
         seller,
         {from: seller, useGSN: true}
@@ -262,14 +262,14 @@ describe("MarketPlace", function () {
       ownedEcoBlock = 0;
 
       // Approve MarketPlace Contract to manage asset
-      await PanamaJungleInstance.approve(this.contract.address, ownedEcoBlock, {
+      await PilotoInstance.approve(this.contract.address, ownedEcoBlock, {
         from: seller,
         useGSN: true,
       });
 
       // Create Sell Order
       const {tx} = await this.contract.createOrder(
-        PanamaJungleInstance.address,
+        PilotoInstance.address,
         ownedEcoBlock,
         this.ecoPrice,
         {from: seller, useGSN: false}
@@ -277,7 +277,7 @@ describe("MarketPlace", function () {
       await expectEvent.inTransaction(tx, MarketPlace, "OrderCreated", {
         assetId: ownedEcoBlock.toString(),
         assetOwner: seller,
-        subTokenAddress: PanamaJungleInstance.address,
+        subTokenAddress: PilotoInstance.address,
         ecoPrice: this.ecoPrice.toString(),
       });
     });
@@ -291,7 +291,7 @@ describe("MarketPlace", function () {
 
       // Execute Sell Order
       const {tx} = await this.contract.executeOrder(
-        PanamaJungleInstance.address,
+        PilotoInstance.address,
         ownedEcoBlock,
         this.ecoPrice,
         {from: buyer, useGSN: false}
@@ -300,7 +300,7 @@ describe("MarketPlace", function () {
       await expectEvent.inTransaction(tx, MarketPlace, "OrderSuccessful", {
         assetId: ownedEcoBlock.toString(),
         seller: seller,
-        subTokenAddress: PanamaJungleInstance.address,
+        subTokenAddress: PilotoInstance.address,
         totalPrice: this.ecoPrice.toString(),
         buyer: buyer,
       });
@@ -312,7 +312,7 @@ describe("MarketPlace", function () {
       expect((await EcoBuxInstance.balanceOf(EcoBuxFeeInstance.address)).toNumber()).to.equal(
         Math.floor(this.ecoPrice * 0.01)
       );
-      expect((await EcoBuxInstance.balanceOf(PanamaJungleInstance.address)).toNumber()).to.equal(
+      expect((await EcoBuxInstance.balanceOf(PilotoInstance.address)).toNumber()).to.equal(
         Math.floor(this.ecoPrice * 0.01) + 25
       );
       // Add 25 because EcoBlock was purchased
@@ -320,7 +320,7 @@ describe("MarketPlace", function () {
     it("execute sell order with large fee", async function () {
       this.ecoPrice = 50000; // Cost of sell order (500 EcoBux)
       // Create Sell Order
-      await this.contract.createOrder(PanamaJungleInstance.address, ownedEcoBlock, this.ecoPrice, {
+      await this.contract.createOrder(PilotoInstance.address, ownedEcoBlock, this.ecoPrice, {
         from: seller,
         useGSN: false,
       });
@@ -334,7 +334,7 @@ describe("MarketPlace", function () {
 
       // Execute Sell Order
       const {tx} = await this.contract.executeOrder(
-        PanamaJungleInstance.address,
+        PilotoInstance.address,
         ownedEcoBlock,
         this.ecoPrice,
         {from: buyer, useGSN: false}
@@ -343,7 +343,7 @@ describe("MarketPlace", function () {
       await expectEvent.inTransaction(tx, MarketPlace, "OrderSuccessful", {
         assetId: ownedEcoBlock.toString(),
         seller: seller,
-        subTokenAddress: PanamaJungleInstance.address,
+        subTokenAddress: PilotoInstance.address,
         totalPrice: this.ecoPrice.toString(),
         buyer: buyer,
       });
@@ -355,7 +355,7 @@ describe("MarketPlace", function () {
       expect((await EcoBuxInstance.balanceOf(EcoBuxFeeInstance.address)).toNumber()).to.equal(
         Math.floor(this.ecoPrice * 0.01)
       );
-      expect((await EcoBuxInstance.balanceOf(PanamaJungleInstance.address)).toNumber()).to.equal(
+      expect((await EcoBuxInstance.balanceOf(PilotoInstance.address)).toNumber()).to.equal(
         Math.floor(this.ecoPrice * 0.01) + 25
       );
       // Add 25 because EcoBlock was purchased
@@ -363,7 +363,7 @@ describe("MarketPlace", function () {
     it("execute sell order with no fee", async function () {
       this.ecoPrice = 5; // Cost of sell order (0.05 EcoBux)
       // Create Sell Order
-      await this.contract.createOrder(PanamaJungleInstance.address, ownedEcoBlock, this.ecoPrice, {
+      await this.contract.createOrder(PilotoInstance.address, ownedEcoBlock, this.ecoPrice, {
         from: seller,
         useGSN: false,
       });
@@ -377,7 +377,7 @@ describe("MarketPlace", function () {
 
       // Execute Sell Order
       const {tx} = await this.contract.executeOrder(
-        PanamaJungleInstance.address,
+        PilotoInstance.address,
         ownedEcoBlock,
         this.ecoPrice,
         {from: buyer, useGSN: false}
@@ -386,7 +386,7 @@ describe("MarketPlace", function () {
       await expectEvent.inTransaction(tx, MarketPlace, "OrderSuccessful", {
         assetId: ownedEcoBlock.toString(),
         seller: seller,
-        subTokenAddress: PanamaJungleInstance.address,
+        subTokenAddress: PilotoInstance.address,
         totalPrice: this.ecoPrice.toString(),
         buyer: buyer,
       });
@@ -398,7 +398,7 @@ describe("MarketPlace", function () {
       expect((await EcoBuxInstance.balanceOf(EcoBuxFeeInstance.address)).toNumber()).to.equal(
         Math.floor(this.ecoPrice * 0.01)
       );
-      expect((await EcoBuxInstance.balanceOf(PanamaJungleInstance.address)).toNumber()).to.equal(
+      expect((await EcoBuxInstance.balanceOf(PilotoInstance.address)).toNumber()).to.equal(
         Math.floor(this.ecoPrice * 0.01) + 25
       );
       // Add 25 because EcoBlock was purchased
@@ -406,7 +406,7 @@ describe("MarketPlace", function () {
     it("fail to execute order if asset not published", async function () {
       await expectRevert(
         this.contract.executeOrder(
-          PanamaJungleInstance.address, // Subtoken Address
+          PilotoInstance.address, // Subtoken Address
           5138008, // Nonexistant Asset ID
           this.ecoPrice, // Price
           {from: buyer}
@@ -417,7 +417,7 @@ describe("MarketPlace", function () {
     it("fail to execute order if seller tries to buy asset", async function () {
       await expectRevert(
         this.contract.executeOrder(
-          PanamaJungleInstance.address, // Subtoken Address
+          PilotoInstance.address, // Subtoken Address
           ownedEcoBlock, // Asset ID
           this.ecoPrice, // Price
           {from: seller}
@@ -428,7 +428,7 @@ describe("MarketPlace", function () {
     it("fail to execute order if incorrect price", async function () {
       await expectRevert(
         this.contract.executeOrder(
-          PanamaJungleInstance.address, // Subtoken Address
+          PilotoInstance.address, // Subtoken Address
           ownedEcoBlock, // Asset ID
           1, // Incorrect Price
           {from: buyer}
@@ -439,7 +439,7 @@ describe("MarketPlace", function () {
     it("fail to execute order if buyer does not have EcoBux", async function () {
       await expectRevert(
         this.contract.executeOrder(
-          PanamaJungleInstance.address, // Subtoken Address
+          PilotoInstance.address, // Subtoken Address
           ownedEcoBlock, // Asset ID
           this.ecoPrice, // Price
           {from: buyer}
@@ -451,14 +451,14 @@ describe("MarketPlace", function () {
       // In this test, seller and buyer are corroborating to steal EcoBux
 
       // Approve buyer to take asset
-      await PanamaJungleInstance.approve(buyer, ownedEcoBlock, {from: seller});
+      await PilotoInstance.approve(buyer, ownedEcoBlock, {from: seller});
       // buyer takes asset
-      await PanamaJungleInstance.safeTransferFrom(seller, buyer, ownedEcoBlock, {from: buyer});
+      await PilotoInstance.safeTransferFrom(seller, buyer, ownedEcoBlock, {from: buyer});
 
       // Buyer2 Can no longer execute order
       await expectRevert(
         this.contract.executeOrder(
-          PanamaJungleInstance.address, // Subtoken Address
+          PilotoInstance.address, // Subtoken Address
           ownedEcoBlock, // Asset ID
           this.ecoPrice, // Price
           {from: buyer2}
