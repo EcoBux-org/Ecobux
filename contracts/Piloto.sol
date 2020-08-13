@@ -128,7 +128,7 @@ contract Piloto is ERC721, Ownable, Pausable, GSNRecipient {
         return newAddonId;
     }
 
-    /** @dev Function to add vitrual microtransactions to an EcoBlock
+    /** @dev Function to add virtual addons to an EcoBlock
      * @param tokenId id of the token to add the microtransactions to
      * @param addonId Desired name of the addon mapped to an id
      * @return All microtransactions on tokenId
@@ -300,7 +300,7 @@ contract Piloto is ERC721, Ownable, Pausable, GSNRecipient {
      * @dev True random numbers are not possible in eth, these numbers are predictable
      * @dev psuedoRandomness is okay here because it only determines block id
      * @dev cost to get an unpredictable number with oracles would be illogical and take away money from charity
-     * @dev don't use this function for important number generation
+     * @dev don't use this for important number generation
      * @return a predictable psuedorandom number
      */
     /* solhint-disable not-rely-on-time */

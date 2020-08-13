@@ -29,7 +29,7 @@ contract PilotoFuture is ERC20, Ownable, Pausable, GSNRecipient {
         currentPrice = 25; // Default to 25 ECOB per FUTURE. Changed by setCurrentPrice()
     }
 
-    /** @dev Fuction to interface with creating and dispensing Future
+    /** @dev Function to interface with creating and dispensing Future
      * @param _amount Number of Future desired
      */
     function buyFuture(uint256 _amount) external whenNotPaused returns (uint256) {
