@@ -5,9 +5,9 @@ pragma solidity ^0.6.0;
 import "@openzeppelin/contracts/math/SafeMath.sol";
 
 // Interface contract to interact with EcoBux and ERC20 subcontracts
-import "./utils/Erc20.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 // Interface contracts to interact with ERC721 subcontracts
-import "./utils/Erc721.sol";
+import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "./utils/Erc721Verifiable.sol";
 
 // TODO: Add GSN
@@ -16,11 +16,11 @@ contract MarketPlace {
     using SafeMath for uint256;
 
     // Declare ecobux address
-    ERC20 public ecoBux;
+    IERC20 public ecoBux;
     // EcoBux Fee is a empty smart contract used to "burn" EcoBux
     // All EcoBux in this contract is money given to EcoBux to cover gas fees and
     // Other operational costs.
-    ERC20 public ecoBuxFee;
+    IERC20 public ecoBuxFee;
     uint256 public fee;
 
     bytes4 public constant ERC721_INTERFACE = bytes4(0x80ac58cd);
@@ -31,8 +31,8 @@ contract MarketPlace {
 
     // Start contract with EcoBux address and Fee address as parameters
     constructor(address _ecoBuxAddress, address _ecoBuxFeeAddress) public {
-        ecoBux = ERC20(_ecoBuxAddress);
-        ecoBuxFee = ERC20(_ecoBuxFeeAddress);
+        ecoBux = IERC20(_ecoBuxAddress);
+        ecoBuxFee = IERC20(_ecoBuxFeeAddress);
         // Base percentage of every executed order, in EcoBux
         // 2 = 2%
         fee = 2;
@@ -88,7 +88,7 @@ contract MarketPlace {
     ) external {
         _requireERC721(subTokenAddress);
 
-        ERC721 subToken = ERC721(subTokenAddress);
+        IERC721 subToken = IERC721(subTokenAddress);
         address assetOwner = subToken.ownerOf(assetId);
 
         require(msg.sender == assetOwner, "Only the owner can make orders");
@@ -185,7 +185,7 @@ contract MarketPlace {
     function _requireERC721(address subTokenAddress) internal view {
         require(isContract(subTokenAddress), "Address must be a contract");
 
-        ERC721 nftRegistry = ERC721(subTokenAddress);
+        IERC721 nftRegistry = IERC721(subTokenAddress);
         require(
             nftRegistry.supportsInterface(ERC721_INTERFACE),
             "Contract has an invalid ERC721 implementation"

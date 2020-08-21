@@ -74,7 +74,7 @@ describe("Piloto", function () {
 
     it("buy EcoBlock with GSN", async function () {
       const startEth = await web3.eth.getBalance(user);
-      const ecoMint = 25;
+      const ecoMint = 1500;
       await EcoBuxInstance.createEco(user, ecoMint, {from: admin});
       await EcoBuxInstance.approve(this.contract.address, ecoMint, {from: user, useGSN: true});
       await expect(
@@ -93,7 +93,7 @@ describe("Piloto", function () {
 
     it("buy multiple allotmnets", async function () {
       const startEth = await web3.eth.getBalance(user);
-      const ecoMint = 75;
+      const ecoMint = 4500;
       await EcoBuxInstance.createEco(user, ecoMint, {from: admin});
       await EcoBuxInstance.approve(this.contract.address, ecoMint, {from: user, useGSN: true});
       await expect(
@@ -117,7 +117,7 @@ describe("Piloto", function () {
       );
     });
     it("fails to buy EcoBlocks if not enough EcoBlocks", async function () {
-      const ecoMint = 2500;
+      const ecoMint = 150000;
       await EcoBuxInstance.createEco(user, ecoMint, {from: admin});
       await EcoBuxInstance.approve(this.contract.address, ecoMint, {from: user});
 
@@ -128,7 +128,7 @@ describe("Piloto", function () {
     });
     it("return info about all owned EcoBlocks", async function () {
       // Buy EcoBlock with GSN
-      const ecoMint = 25;
+      const ecoMint = 1500;
       await EcoBuxInstance.createEco(user, ecoMint, {from: admin});
       await EcoBuxInstance.approve(this.contract.address, ecoMint, {from: user, useGSN: true});
 

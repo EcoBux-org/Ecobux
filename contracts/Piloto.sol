@@ -12,7 +12,7 @@ import "@openzeppelin/contracts/GSN/GSNRecipient.sol";
 import "./utils/Ownable.sol";
 import "./utils/Pausable.sol";
 // Interface contract to interact with EcoBux
-import "./utils/Erc20.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 contract Piloto is ERC721, Ownable, Pausable, GSNRecipient {
     // Prevents overflows with uint256
@@ -51,16 +51,16 @@ contract Piloto is ERC721, Ownable, Pausable, GSNRecipient {
     // Define contract's token address
     ERC721 public nftAddress = ERC721(address(this));
     // Default to 25 ECOB per EcoBlock. Changed by setCurrentPrice()
-    uint256 public currentPrice = 25;
+    uint256 public currentPrice = 1500;
     // Nonce is Theoretically predictable, but only used to pick EcoBlocks bought
     // https://medium.com/@tiagobertolo/how-to-safely-generate-random-numbers-in-solidity-contracts-bd8bd217ff7b
     uint256 private randomNonce;
     // Declare ecobux address
-    ERC20 public ecoBuxAddress;
+    IERC20 public ecoBuxAddress;
 
     // Start contract with EcoBux address as parameter
     constructor(address _ecoBuxAddress) public ERC721("Piloto", "PILO") {
-        ecoBuxAddress = ERC20(_ecoBuxAddress);
+        ecoBuxAddress = IERC20(_ecoBuxAddress);
     }
 
     /** @dev Function to group create EcoBlocks
@@ -245,7 +245,7 @@ contract Piloto is ERC721, Ownable, Pausable, GSNRecipient {
      * @param _ecoBuxAddress new address of the EcoBux contract
      */
     function setEcoBuxAddress(address _ecoBuxAddress) public onlyOwner {
-        ecoBuxAddress = ERC20(_ecoBuxAddress);
+        ecoBuxAddress = IERC20(_ecoBuxAddress);
     }
 
     // Relay Requires this func even if unused
@@ -310,6 +310,7 @@ contract Piloto is ERC721, Ownable, Pausable, GSNRecipient {
         randomNonce++;
         return randomNum;
     }
+
     /* solhint-enable not-rely-on-time */
 
     function _createEcoBlock(uint16[2][5] memory _EcoBlock) internal {

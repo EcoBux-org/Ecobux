@@ -44,12 +44,12 @@ describe("MarketPlace", function () {
 
   context("Create Order functions", async function () {
     beforeEach(async function () {
-      ecoPrice = 25;
+      ecoPrice = 1500;
     });
     it("create a new sell order", async function () {
       // Buy EcoBlock for seller
-      const ecoMint = 25; // Amount of EcoBux to mint: Used to buy EcoBlock
-      const ecoPrice = 25; // Cost of sell order
+      const ecoMint = 1500; // Amount of EcoBux to mint: Used to buy EcoBlock
+      const ecoPrice = 1500; // Cost of sell order
       await EcoBuxInstance.createEco(seller, ecoMint, {from: admin});
       await EcoBuxInstance.approve(PilotoInstance.address, ecoMint, {
         from: seller,
@@ -91,7 +91,7 @@ describe("MarketPlace", function () {
       );
     });
     it("fail to create sell order if contract owns asset", async function () {
-      const ecoPrice = 25; // Cost of sell order
+      const ecoPrice = 1500; // Cost of sell order
 
       // EcoBlock 0 is the only one available
       const ownedEcoBlock = 0;
@@ -106,8 +106,8 @@ describe("MarketPlace", function () {
     /* Fees must be covered as they are now a percentage of EcoBux, not const
     it('fail to create sell order if price doesnt cover fee', async function() {
       // Buy EcoBlock for seller
-      const ecoMint = 25; // Amount of EcoBux to mint: Used to buy EcoBlock
-      const ecoPrice = 25; // Cost of sell order
+      const ecoMint = 1500; // Amount of EcoBux to mint: Used to buy EcoBlock
+      const ecoPrice = 1500; // Cost of sell order
       await EcoBuxInstance.createEco(seller, ecoMint, {from: admin});
       await EcoBuxInstance.approve(
           PilotoInstance.address, ecoMint,
@@ -148,8 +148,8 @@ describe("MarketPlace", function () {
     */
     it("fail to create order if owner not approve contract", async function () {
       // Buy EcoBlock for seller
-      const ecoMint = 25; // Amount of EcoBux to mint: Used to buy EcoBlock
-      const ecoPrice = 25; // Cost of sell order
+      const ecoMint = 1500; // Amount of EcoBux to mint: Used to buy EcoBlock
+      const ecoPrice = 1500; // Cost of sell order
       await EcoBuxInstance.createEco(seller, ecoMint, {from: admin});
       await EcoBuxInstance.approve(PilotoInstance.address, ecoMint, {
         from: seller,
@@ -176,8 +176,8 @@ describe("MarketPlace", function () {
       // Create Sell order from seller
 
       // Buy EcoBlock for seller
-      const ecoMint = 25; // Amount of EcoBux to mint: Used to buy EcoBlock
-      const ecoPrice = 25; // Cost of sell order
+      const ecoMint = 1500; // Amount of EcoBux to mint: Used to buy EcoBlock
+      const ecoPrice = 1500; // Cost of sell order
       await EcoBuxInstance.createEco(seller, ecoMint, {from: admin});
       await EcoBuxInstance.approve(PilotoInstance.address, ecoMint, {
         from: seller,
@@ -242,7 +242,7 @@ describe("MarketPlace", function () {
       // Create Sell order from seller
 
       // Buy EcoBlock for seller
-      this.ecoMint = 25; // Amount of EcoBux to mint: Used to buy EcoBlock
+      this.ecoMint = 1500; // Amount of EcoBux to mint: Used to buy EcoBlock
       this.ecoPrice = 100; // Cost of sell order (1 EcoBux)
       await EcoBuxInstance.createEco(seller, this.ecoMint, {from: admin});
       await EcoBuxInstance.approve(PilotoInstance.address, this.ecoMint, {
@@ -313,7 +313,7 @@ describe("MarketPlace", function () {
         Math.floor(this.ecoPrice * 0.01)
       );
       expect((await EcoBuxInstance.balanceOf(PilotoInstance.address)).toNumber()).to.equal(
-        Math.floor(this.ecoPrice * 0.01) + 25
+        Math.floor(this.ecoPrice * 0.01) + 1500 
       );
       // Add 25 because EcoBlock was purchased
     });
@@ -356,7 +356,7 @@ describe("MarketPlace", function () {
         Math.floor(this.ecoPrice * 0.01)
       );
       expect((await EcoBuxInstance.balanceOf(PilotoInstance.address)).toNumber()).to.equal(
-        Math.floor(this.ecoPrice * 0.01) + 25
+        Math.floor(this.ecoPrice * 0.01) + 1500 
       );
       // Add 25 because EcoBlock was purchased
     });
@@ -399,7 +399,7 @@ describe("MarketPlace", function () {
         Math.floor(this.ecoPrice * 0.01)
       );
       expect((await EcoBuxInstance.balanceOf(PilotoInstance.address)).toNumber()).to.equal(
-        Math.floor(this.ecoPrice * 0.01) + 25
+        Math.floor(this.ecoPrice * 0.01) + 1500 
       );
       // Add 25 because EcoBlock was purchased
     });
