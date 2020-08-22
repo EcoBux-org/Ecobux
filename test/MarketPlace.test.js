@@ -313,7 +313,7 @@ describe("MarketPlace", function () {
         Math.floor(this.ecoPrice * 0.01)
       );
       expect((await EcoBuxInstance.balanceOf(PilotoInstance.address)).toNumber()).to.equal(
-        Math.floor(this.ecoPrice * 0.01) + 1500 
+        Math.floor(this.ecoPrice * 0.01) + 1500
       );
       // Add 25 because EcoBlock was purchased
     });
@@ -356,7 +356,7 @@ describe("MarketPlace", function () {
         Math.floor(this.ecoPrice * 0.01)
       );
       expect((await EcoBuxInstance.balanceOf(PilotoInstance.address)).toNumber()).to.equal(
-        Math.floor(this.ecoPrice * 0.01) + 1500 
+        Math.floor(this.ecoPrice * 0.01) + 1500
       );
       // Add 25 because EcoBlock was purchased
     });
@@ -399,7 +399,7 @@ describe("MarketPlace", function () {
         Math.floor(this.ecoPrice * 0.01)
       );
       expect((await EcoBuxInstance.balanceOf(PilotoInstance.address)).toNumber()).to.equal(
-        Math.floor(this.ecoPrice * 0.01) + 1500 
+        Math.floor(this.ecoPrice * 0.01) + 1500
       );
       // Add 25 because EcoBlock was purchased
     });
