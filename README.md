@@ -5,8 +5,13 @@
 
 ## Setup
 Install all required npm packages
+
 `npm install`
+
 Launch local blockchain
+
 `npm run gas`
+
 Deploy all contracts
+
 `npm run migrate`
