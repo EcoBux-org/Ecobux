@@ -107,11 +107,7 @@ contract Piloto is ERC721, Ownable, Pausable, GSNRecipient {
         // Take money from account before so no chance of re entry attacks
         // Take a percentage fee from the transaction to EcoBux
         require(
-            takeEco(
-              _msgSender(), 
-              ecoBuxFee, 
-              ((_tokensDesired * fee * currentPrice ) / 100)
-            ),
+            takeEco(_msgSender(), ecoBuxFee, ((_tokensDesired * fee * currentPrice) / 100)),
             "Transfering the project fee to the EcoBux owner failed"
         );
 
@@ -120,7 +116,7 @@ contract Piloto is ERC721, Ownable, Pausable, GSNRecipient {
                 _msgSender(),
                 address(this),
                 // Get the price - without the fee to be transferred to Piloto
-                (currentPrice * _tokensDesired) - (fee * currentPrice * _tokensDesired / 100)
+                (currentPrice * _tokensDesired) - ((fee * currentPrice * _tokensDesired) / 100)
             ),
             "Transfering the sale amount to the seller failed"
         );
@@ -324,12 +320,13 @@ contract Piloto is ERC721, Ownable, Pausable, GSNRecipient {
      * @param _from address to take ecobux from
      * @param _amount how much ecobux (in atomic units) to take
      */
-    function takeEco(address _from, address _to, uint256 _amount) internal returns (bool) {
+    function takeEco(
+        address _from,
+        address _to,
+        uint256 _amount
+    ) internal returns (bool) {
         require(availableECO(_from) >= _amount, "Not Enough EcoBux"); // Requre enough EcoBux available
-        require(
-            ecoBuxAddress.transferFrom(_from, _to, _amount),
-            "Transfer of EcoBux failed"
-        );
+        require(ecoBuxAddress.transferFrom(_from, _to, _amount), "Transfer of EcoBux failed");
         return true;
     }
 

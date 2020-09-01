@@ -20,7 +20,9 @@ describe("Piloto", function () {
     // Deploy a new Piloto and EcoBux contract for each test
     EcoBuxInstance = await EcoBux.new({from: admin});
     EcoBuxFeeInstance = await EcoBuxFee.new({from: admin});
-    this.contract = await Piloto.new(EcoBuxInstance.address, EcoBuxFeeInstance.address, {from: admin});
+    this.contract = await Piloto.new(EcoBuxInstance.address, EcoBuxFeeInstance.address, {
+      from: admin,
+    });
   });
 
   context("Basic ERC721 Functions", function () {
