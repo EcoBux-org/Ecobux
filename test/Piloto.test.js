@@ -7,6 +7,7 @@ const {ZERO_ADDRESS} = constants;
 
 // Load compiled artifacts
 const EcoBux = contract.fromArtifact("EcoBux");
+const EcoBuxFee = contract.fromArtifact("EcoBuxFee");
 const Piloto = contract.fromArtifact("Piloto");
 
 const [admin, user, user2] = accounts;
@@ -18,7 +19,8 @@ describe("Piloto", function () {
   beforeEach(async function () {
     // Deploy a new Piloto and EcoBux contract for each test
     EcoBuxInstance = await EcoBux.new({from: admin});
-    this.contract = await Piloto.new(EcoBuxInstance.address, {from: admin});
+    EcoBuxFeeInstance = await EcoBuxFee.new({from: admin});
+    this.contract = await Piloto.new(EcoBuxInstance.address, EcoBuxFeeInstance.address, {from: admin});
   });
 
   context("Basic ERC721 Functions", function () {
@@ -104,6 +106,11 @@ describe("Piloto", function () {
 
       // Test if EcoBlock was purchased
       await expect(await this.contract.ownedEcoBlocks(user)).to.be.length(3);
+
+      // Verify fee is taken
+      expect((await EcoBuxInstance.balanceOf(EcoBuxFeeInstance.address)).toNumber()).to.equal(
+        Math.floor(1500 * 0.02 * 3) // 2%
+      );
 
       // Test if GSN worked
       // Note that we need to use strings to compare the 256 bit integers

@@ -57,10 +57,21 @@ contract Piloto is ERC721, Ownable, Pausable, GSNRecipient {
     uint256 private randomNonce;
     // Declare ecobux address
     IERC20 public ecoBuxAddress;
+    // EcoBux Fee is a empty smart contract used to "burn" EcoBux
+    // All EcoBux in this contract is money given to EcoBux to cover gas fees and
+    // Other operational costs.
+    address public ecoBuxFee;
+    // Fee percentage to EcoBux
+    uint256 public fee;
 
     // Start contract with EcoBux address as parameter
-    constructor(address _ecoBuxAddress) public ERC721("Piloto", "PILO") {
+    constructor(address _ecoBuxAddress, address _ecoBuxFeeAddress) public ERC721("Piloto", "PILO") {
         ecoBuxAddress = IERC20(_ecoBuxAddress);
+        ecoBuxFee = _ecoBuxFeeAddress;
+        // Base percentage of every executed purchase, in EcoBux
+        // Goes directly to EcoBux to cover costs
+        // 2 = 2%
+        fee = 2;
     }
 
     /** @dev Function to group create EcoBlocks
@@ -94,7 +105,25 @@ contract Piloto is ERC721, Ownable, Pausable, GSNRecipient {
         );
 
         // Take money from account before so no chance of re entry attacks
-        takeEco(_msgSender(), currentPrice * _tokensDesired);
+        // Take a percentage fee from the transaction to EcoBux
+        require(
+            takeEco(
+              _msgSender(), 
+              ecoBuxFee, 
+              ((_tokensDesired * fee * currentPrice ) / 100)
+            ),
+            "Transfering the project fee to the EcoBux owner failed"
+        );
+
+        require(
+            takeEco(
+                _msgSender(),
+                address(this),
+                // Get the price - without the fee to be transferred to Piloto
+                (currentPrice * _tokensDesired) - (fee * currentPrice * _tokensDesired / 100)
+            ),
+            "Transfering the sale amount to the seller failed"
+        );
 
         // Create memory array of all tokens owned by the contract to pick randomly
         uint256[] memory contractTokens = this.ownedEcoBlocks(address(this));
@@ -149,7 +178,7 @@ contract Piloto is ERC721, Ownable, Pausable, GSNRecipient {
         require(_exists(tokenId), "Selected Token does not exist");
 
         // Take money from account before event emitted to prevent reentry attacks
-        takeEco(_msgSender(), microAddons[addonId].price);
+        takeEco(_msgSender(), address(this), microAddons[addonId].price);
 
         ecoBlocks[tokenId].addons.push(addonId); // Add addonId to token array
 
@@ -241,6 +270,13 @@ contract Piloto is ERC721, Ownable, Pausable, GSNRecipient {
         currentPrice = _currentPrice;
     }
 
+    /** @dev Function to update _currentPrice
+     * @param _fee new percentage fee to take from each EcoBlock
+     */
+    function setCurrentFee(uint256 _fee) public onlyOwner {
+        fee = _fee;
+    }
+
     /** @dev Function to update _ecoBuxAddress
      * @param _ecoBuxAddress new address of the EcoBux contract
      */
@@ -288,12 +324,13 @@ contract Piloto is ERC721, Ownable, Pausable, GSNRecipient {
      * @param _from address to take ecobux from
      * @param _amount how much ecobux (in atomic units) to take
      */
-    function takeEco(address _from, uint256 _amount) internal {
+    function takeEco(address _from, address _to, uint256 _amount) internal returns (bool) {
         require(availableECO(_from) >= _amount, "Not Enough EcoBux"); // Requre enough EcoBux available
         require(
-            ecoBuxAddress.transferFrom(_from, address(this), _amount),
+            ecoBuxAddress.transferFrom(_from, _to, _amount),
             "Transfer of EcoBux failed"
         );
+        return true;
     }
 
     /** @dev Function to create radnom numbers

@@ -15,10 +15,13 @@ const [admin, seller, buyer, buyer2] = accounts;
 // Start test block
 describe("MarketPlace", function () {
   this.timeout(15000);
+  // Price of each EcoBlock, in EcoBux
+  blockPrice = 1500;
+  ecoFee = 0.02;
   beforeEach(async function () {
     EcoBuxInstance = await EcoBux.new({from: admin});
     EcoBuxFeeInstance = await EcoBuxFee.new({from: admin});
-    PilotoInstance = await Piloto.new(EcoBuxInstance.address, {from: admin});
+    PilotoInstance = await Piloto.new(EcoBuxInstance.address, EcoBuxFeeInstance.address, {from: admin});
     this.contract = await MarketPlace.new(EcoBuxInstance.address, EcoBuxFeeInstance.address, {
       from: admin,
     });
@@ -310,10 +313,10 @@ describe("MarketPlace", function () {
       );
       expect((await EcoBuxInstance.balanceOf(buyer)).toNumber()).to.equal(0);
       expect((await EcoBuxInstance.balanceOf(EcoBuxFeeInstance.address)).toNumber()).to.equal(
-        Math.floor(this.ecoPrice * 0.01)
+        Math.floor(this.ecoPrice * 0.01 + (blockPrice * ecoFee))
       );
       expect((await EcoBuxInstance.balanceOf(PilotoInstance.address)).toNumber()).to.equal(
-        Math.floor(this.ecoPrice * 0.01) + 1500
+        Math.floor(this.ecoPrice * 0.01) + (blockPrice - blockPrice * ecoFee)
       );
       // Add 25 because EcoBlock was purchased
     });
@@ -353,10 +356,10 @@ describe("MarketPlace", function () {
       );
       expect((await EcoBuxInstance.balanceOf(buyer)).toNumber()).to.equal(0);
       expect((await EcoBuxInstance.balanceOf(EcoBuxFeeInstance.address)).toNumber()).to.equal(
-        Math.floor(this.ecoPrice * 0.01)
+        Math.floor(this.ecoPrice * 0.01 + (blockPrice * ecoFee))
       );
       expect((await EcoBuxInstance.balanceOf(PilotoInstance.address)).toNumber()).to.equal(
-        Math.floor(this.ecoPrice * 0.01) + 1500
+        Math.floor(this.ecoPrice * 0.01) + (blockPrice - blockPrice * ecoFee)
       );
       // Add 25 because EcoBlock was purchased
     });
@@ -396,10 +399,10 @@ describe("MarketPlace", function () {
       );
       expect((await EcoBuxInstance.balanceOf(buyer)).toNumber()).to.equal(0);
       expect((await EcoBuxInstance.balanceOf(EcoBuxFeeInstance.address)).toNumber()).to.equal(
-        Math.floor(this.ecoPrice * 0.01)
+        Math.floor(this.ecoPrice * 0.01 + (blockPrice * ecoFee))
       );
       expect((await EcoBuxInstance.balanceOf(PilotoInstance.address)).toNumber()).to.equal(
-        Math.floor(this.ecoPrice * 0.01) + 1500
+        Math.floor(this.ecoPrice * 0.01) + (blockPrice - blockPrice * ecoFee)
       );
       // Add 25 because EcoBlock was purchased
     });

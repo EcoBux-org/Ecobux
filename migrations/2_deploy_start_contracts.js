@@ -9,7 +9,7 @@ module.exports = function (deployer, network, accounts) {
     await deployer.deploy(EcoBux);
     await deployer.deploy(EcoBuxFee);
     await deployer.deploy(MarketPlace, EcoBux.address, EcoBuxFee.address);
-    await deployer.deploy(PilotoFuture, EcoBux.address);
+    await deployer.deploy(PilotoFuture, EcoBux.address, EcoBuxFee.address);
     await deployer.deploy(Piloto, EcoBux.address);
   });
 };
