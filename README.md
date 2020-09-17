@@ -1,6 +1,6 @@
 # Ecobux
 ### Take conservation into your own hands with the power of cryptocurrency
-[![Build Status](https://travis-ci.com/Watt3r/Ecobux.svg?token=dJNHP5kcHYqxe1zxTX3D&branch=master)](https://travis-ci.com/Watt3r/Ecobux)
+[![Build Status](https://travis-ci.com/Ecobux-org/Ecobux.svg?token=dJNHP5kcHYqxe1zxTX3D&branch=master)](https://travis-ci.com/Ecobux-org/Ecobux)
 [![Coverage Status](https://coveralls.io/repos/github/Watt3r/Ecobux/badge.svg?branch=master&t=rsNp19)](https://coveralls.io/github/Watt3r/Ecobux?branch=master)
 
 ## Setup
