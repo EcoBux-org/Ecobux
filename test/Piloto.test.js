@@ -95,7 +95,14 @@ describe("Piloto", function () {
       await expect((await web3.eth.getBalance(user)).toString()).to.equal(startEth);
     });
 
-    it("buy multiple allotmnets", async function () {
+    it("give EcoBlock from admin", async function () {
+      await this.contract.giveEcoBlocks(1, user, {from: admin});
+
+      // Test if EcoBlock was purchased
+      await expect(await this.contract.ownedEcoBlocks(user)).to.be.length(1);
+    });
+
+    it("buy multiple EcoBlocks", async function () {
       const startEth = await web3.eth.getBalance(user);
       const ecoMint = 4500;
       await EcoBuxInstance.createEco(user, ecoMint, {from: admin});
@@ -135,6 +142,14 @@ describe("Piloto", function () {
         "Not enough available tokens!"
       );
     });
+
+    it("fails to give EcoBlock if not admin", async function () {
+      await expectRevert(
+        this.contract.giveEcoBlocks(1, user, {from: user}),
+        "Only the owner can run this function"
+      );
+    });
+
     it("return info about all owned EcoBlocks", async function () {
       // Buy EcoBlock with GSN
       const ecoMint = 1500;

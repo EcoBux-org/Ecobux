@@ -139,6 +139,30 @@ contract Piloto is ERC721, Ownable, Pausable, GSNRecipient {
         }
     }
 
+    /** @dev Admin Function to give EcoBlocks, gets around GSN not working
+     * @param _tokensDesired number of EcoBlocks to buy from contract
+     * @param _to address to send bought EcoBlocks
+     */
+    function giveEcoBlocks(uint256 _tokensDesired, address _to) external whenNotPaused onlyOwner {
+        // Create memory array of all tokens owned by the contract to pick randomly
+        uint256[] memory contractTokens = this.ownedEcoBlocks(address(this));
+
+        require(contractTokens.length >= _tokensDesired, "Not enough available tokens!");
+
+        for (uint256 i = 0; i < _tokensDesired; i++) {
+            // Select random token from owned contract tokens
+            uint256 tokenId = contractTokens[random() % contractTokens.length];
+
+            // Transfer token from contract to user
+            nftAddress.safeTransferFrom(address(this), _to, tokenId);
+
+            // Refresh the list of available EcoBlocks
+            // cant use pop() because contrarctTokens is memory array, we just have to start from scratch
+            // gas cost is negligible however
+            contractTokens = this.ownedEcoBlocks(address(this));
+        }
+    }
+
     /** @dev Function to create a new type of microaddon
      * @param _price uint of the cost (in ecobux) of the new microaddon
      * @param _buyable bool determining if the new microaddon can be bought by users
@@ -343,6 +367,7 @@ contract Piloto is ERC721, Ownable, Pausable, GSNRecipient {
         randomNonce++;
         return randomNum;
     }
+
     /* solhint-enable not-rely-on-time */
 
     function _createEcoBlock(uint16[2][5] memory _EcoBlock) internal {
