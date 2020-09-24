@@ -142,7 +142,6 @@ describe("Piloto", function () {
         "Not enough available tokens!"
       );
     });
-
     it("fails to give EcoBlock if not admin", async function () {
       await expectRevert(
         this.contract.giveEcoBlocks(1, user, {from: user}),
@@ -221,6 +220,19 @@ describe("Piloto", function () {
 
       await expectEvent.inTransaction(tx, Piloto, "AddedAddon");
     });
+    /* Contract is too big when adding this function
+    it("give Addon from admin", async function () {
+      await this.contract.giveMicro(1, 1, {from: admin});
+      // Test if Mirco was purchased
+      await expectEvent.inTransaction(tx, Piloto, "AddedAddon");
+    });
+    it("fails to give Addon if not admin", async function () {
+      await expectRevert(
+        this.contract.giveMicro(1, user, {from: user}),
+        "Only the owner can run this function"
+      );
+    });
+    */
     it("fail to buy a microaddon if not buyable", async function () {
       // Create microaddon
       const price = 10;

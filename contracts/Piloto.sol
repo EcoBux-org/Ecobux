@@ -206,6 +206,32 @@ contract Piloto is ERC721, Ownable, Pausable, GSNRecipient {
         return ecoBlocks[tokenId].addons;
     }
 
+    /** @dev Function to give virtual addons to an EcoBlock
+     * @param tokenId id of the token to add the microtransactions to
+     * @param addonId Desired name of the addon mapped to an id
+     * @return All microtransactions on tokenId
+     */
+    /*
+    function giveMicro(uint256 tokenId, uint16 addonId)
+        external
+        whenNotPaused
+        onlyOwner
+        returns (uint16[] memory)
+    {
+        require(
+            microAddons[addonId].buyable,
+            "Selected microaddon does not exist or is not buyable."
+        );
+        require(_exists(tokenId), "Selected Token does not exist");
+
+        ecoBlocks[tokenId].addons.push(addonId); // Add addonId to token array
+
+        emit AddedAddon(tokenId, addonId);
+
+        return ecoBlocks[tokenId].addons;
+    }
+    */
+
     /** @dev Function to get a list of owned EcoBlock IDs
      * @param addr address to check owned EcoBlocks
      * @return A uint array which contains IDs of all owned EcoBlocks
