@@ -36,7 +36,7 @@
     "migrate": "npx truffle migrate",
     "gas": "npx ganache-cli --gasLimit 8000000 2> /dev/null 1> /dev/null &",
     "deploy": "npm run gas && npm run migrate",
-    "test": "npm run compile && npx mocha test --exit --timeout 3000 && npm run lint",
+    "test": "npm run compile && npx mocha test --exit --timeout 3000 --parallel && npm run lint",
     "coverage": "npx truffle run coverage",
     "lint": "npx npm-run-all -p lint:*",
     "lint:solidity": "npx solhint \"contracts/**/*.sol\"",
