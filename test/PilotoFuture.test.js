@@ -12,6 +12,8 @@ const PilotoFuture = contract.fromArtifact("PilotoFuture");
 
 const [admin, user] = accounts;
 
+const futurePrice = 1500;
+
 // Start test block
 describe("PilotoFuture", function () {
   beforeEach(async function () {
@@ -33,9 +35,8 @@ describe("PilotoFuture", function () {
   context("Minting Functions", function () {
     it("mint tokens", async function () {
       // Setup
-      const ecoMint = 250;
       const futuresBought = 10;
-      const futurePrice = 25;
+      const ecoMint = futurePrice * futuresBought;
       await EcoBuxInstance.createEco(user, ecoMint, {from: admin});
       await EcoBuxInstance.approve(this.contract.address, ecoMint, {from: user});
       // Mint tokens
@@ -54,9 +55,8 @@ describe("PilotoFuture", function () {
       const startEth = await web3.eth.getBalance(user);
 
       // Setup
-      const ecoMint = 250;
       const futuresBought = 10;
-      const futurePrice = 25;
+      const ecoMint = futurePrice * futuresBought;
       await EcoBuxInstance.createEco(user, ecoMint, {from: admin});
       await EcoBuxInstance.approve(this.contract.address, ecoMint, {from: user, useGSN: true});
       // Mint tokens

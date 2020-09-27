@@ -12,6 +12,8 @@ const Piloto = contract.fromArtifact("Piloto");
 
 const [admin, user, user2] = accounts;
 
+const ecoPrice = 1500; // 15.00 Per ecoBlock
+
 // Start test block
 describe("Piloto", function () {
   // Some tests take a while to setup, increase timeout to allow the tests to complete
@@ -78,7 +80,7 @@ describe("Piloto", function () {
 
     it("buy EcoBlock with GSN", async function () {
       const startEth = await web3.eth.getBalance(user);
-      const ecoMint = 1500;
+      const ecoMint = ecoPrice;
       await EcoBuxInstance.createEco(user, ecoMint, {from: admin});
       await EcoBuxInstance.approve(this.contract.address, ecoMint, {from: user, useGSN: true});
       await expect(
@@ -89,7 +91,6 @@ describe("Piloto", function () {
 
       // Test if EcoBlock was purchased
       await expect(await this.contract.ownedEcoBlocks(user)).to.be.length(1);
-
       // Test if GSN worked
       // Note that we need to use strings to compare the 256 bit integers
       await expect((await web3.eth.getBalance(user)).toString()).to.equal(startEth);
@@ -104,23 +105,21 @@ describe("Piloto", function () {
 
     it("buy multiple EcoBlocks", async function () {
       const startEth = await web3.eth.getBalance(user);
-      const ecoMint = 4500;
+      const blocks = 3;
+      const ecoMint = ecoPrice * blocks;
       await EcoBuxInstance.createEco(user, ecoMint, {from: admin});
       await EcoBuxInstance.approve(this.contract.address, ecoMint, {from: user, useGSN: true});
       await expect(
         (await EcoBuxInstance.allowance(user, this.contract.address)).toString()
       ).to.equal(ecoMint.toString());
-
-      await this.contract.buyEcoBlocks(3, user, {from: user, useGSN: true});
+      await this.contract.buyEcoBlocks(blocks, user, {from: user, useGSN: true});
 
       // Test if EcoBlock was purchased
-      await expect(await this.contract.ownedEcoBlocks(user)).to.be.length(3);
-
+      await expect(await this.contract.ownedEcoBlocks(user)).to.be.length(blocks);
       // Verify fee is taken
       expect((await EcoBuxInstance.balanceOf(EcoBuxFeeInstance.address)).toNumber()).to.equal(
-        Math.floor(1500 * 0.02 * 3) // 2%
+        Math.floor(ecoPrice * blocks * 0.02) // 2%
       );
-
       // Test if GSN worked
       // Note that we need to use strings to compare the 256 bit integers
       await expect((await web3.eth.getBalance(user)).toString()).to.equal(startEth);
@@ -133,12 +132,13 @@ describe("Piloto", function () {
       );
     });
     it("fails to buy EcoBlocks if not enough EcoBlocks", async function () {
-      const ecoMint = 150000;
+      const blocks = 2701;
+      const ecoMint = ecoPrice * blocks;
       await EcoBuxInstance.createEco(user, ecoMint, {from: admin});
       await EcoBuxInstance.approve(this.contract.address, ecoMint, {from: user});
 
       await expectRevert(
-        this.contract.buyEcoBlocks(100, user, {from: user}),
+        this.contract.buyEcoBlocks(blocks, user, {from: user}),
         "Not enough available tokens!"
       );
     });
@@ -151,7 +151,7 @@ describe("Piloto", function () {
 
     it("return info about all owned EcoBlocks", async function () {
       // Buy EcoBlock with GSN
-      const ecoMint = 1500;
+      const ecoMint = ecoPrice;
       await EcoBuxInstance.createEco(user, ecoMint, {from: admin});
       await EcoBuxInstance.approve(this.contract.address, ecoMint, {from: user, useGSN: true});
 
@@ -204,11 +204,9 @@ describe("Piloto", function () {
       // Create a microaddon
       const price = 10;
       const buyable = true;
-
       await this.contract.createMicro(price, buyable, {from: admin});
-
       // Mint EcoBux
-      const ecoMint = 35;
+      const ecoMint = price;
       await EcoBuxInstance.createEco(user, ecoMint, {from: admin});
       await EcoBuxInstance.approve(this.contract.address, ecoMint, {from: user});
       await expect(
@@ -237,8 +235,14 @@ describe("Piloto", function () {
       // Create microaddon
       const price = 10;
       const buyable = false;
-
       await this.contract.createMicro(price, buyable, {from: admin});
+      // Mint EcoBux
+      const ecoMint = price;
+      await EcoBuxInstance.createEco(user, ecoMint, {from: admin});
+      await EcoBuxInstance.approve(this.contract.address, ecoMint, {from: user});
+      await expect(
+        (await EcoBuxInstance.allowance(user, this.contract.address)).toString()
+      ).to.equal(ecoMint.toString());
 
       // Buy the microaddon (and fail)
       await expectRevert(
@@ -250,7 +254,6 @@ describe("Piloto", function () {
       // Create microaddon
       const price = 10;
       const buyable = true;
-
       await this.contract.createMicro(price, buyable, {from: admin});
 
       // Buy the microaddon (and fail)
@@ -263,11 +266,9 @@ describe("Piloto", function () {
       // Create microaddon
       const price = 10;
       const buyable = true;
-
       await this.contract.createMicro(price, buyable, {from: admin});
-
       // Mint EcoBux
-      const ecoMint = 35;
+      const ecoMint = price;
       await EcoBuxInstance.createEco(user, ecoMint, {from: admin});
       await EcoBuxInstance.approve(this.contract.address, ecoMint, {from: user});
       await expect(

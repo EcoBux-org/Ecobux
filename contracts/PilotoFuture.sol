@@ -26,7 +26,7 @@ contract PilotoFuture is ERC20, Ownable, Pausable, GSNRecipient {
     constructor(address _ecoBuxAddress) public ERC20("PilotoFuture", "PILOF") {
         _setupDecimals(0);
         ecoBuxAddress = ERC20(_ecoBuxAddress);
-        currentPrice = 25; // Default to 25 ECOB per FUTURE. Changed by setCurrentPrice()
+        currentPrice = 1500; // Default to 15 ECOB per FUTURE. Changed by setCurrentPrice()
     }
 
     /** @dev Function to interface with creating and dispensing Future
