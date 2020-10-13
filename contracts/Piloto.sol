@@ -406,6 +406,5 @@ contract Piloto is ERC721, Ownable, Pausable, GSNRecipient {
         uint256 newEcoBlockId = ecoBlocks.length - 1;
         // Mint the EcoBlock
         super._mint(address(this), newEcoBlockId);
-        emit Transfer(address(0), address(this), newEcoBlockId);
     }
 }
