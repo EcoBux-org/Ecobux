@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0
-pragma solidity ^0.6.0;
+pragma solidity ^0.7.0;
 
 // Use OpenZeppelin's ERC20 abstract contract for base functions
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
@@ -14,7 +14,7 @@ contract EcoBux is ERC20, Ownable, GSNRecipient {
 
     ERC20 public ecoAddress = ERC20(address(this));
 
-    constructor() public ERC20("EcoBux", "ECOB") {
+    constructor() ERC20("EcoBux", "ECOB") {
         _setupDecimals(2);
     }
 

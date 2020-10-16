@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0
-pragma solidity >=0.6.0;
+pragma solidity >=0.7.0;
 
 /**
  * @title Ownable
@@ -18,7 +18,7 @@ abstract contract Ownable {
      * @dev The Ownable constructor sets the original `owner` of the contract to the sender
      * account.
      */
-    constructor() public {
+    constructor() {
         owner = msg.sender;
     }
 

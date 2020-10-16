@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0
-pragma solidity ^0.6.0;
+pragma solidity ^0.7.0;
 
 // Import OpenZeppelin's ERC-20 Implementation
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
@@ -23,7 +23,7 @@ contract PilotoFuture is ERC20, Ownable, Pausable, GSNRecipient {
     event EcoTransfer(address owner, uint256 amount);
 
     // Start contract with new EcoBux address
-    constructor(address _ecoBuxAddress) public ERC20("PilotoFuture", "PILOF") {
+    constructor(address _ecoBuxAddress) ERC20("PilotoFuture", "PILOF") {
         _setupDecimals(0);
         ecoBuxAddress = ERC20(_ecoBuxAddress);
         currentPrice = 1500; // Default to 15 ECOB per FUTURE. Changed by setCurrentPrice()

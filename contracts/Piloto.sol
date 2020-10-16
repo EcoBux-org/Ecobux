@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0
-pragma solidity ^0.6.0;
+pragma solidity ^0.7.0;
 
 // Import OpenZeppelin's ERC-721 Implementation
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
@@ -65,7 +65,7 @@ contract Piloto is ERC721, Ownable, Pausable, GSNRecipient {
     uint256 public fee;
 
     // Start contract with EcoBux address as parameter
-    constructor(address _ecoBuxAddress, address _ecoBuxFeeAddress) public ERC721("Piloto", "PILO") {
+    constructor(address _ecoBuxAddress, address _ecoBuxFeeAddress) ERC721("Piloto", "PILO") {
         ecoBuxAddress = IERC20(_ecoBuxAddress);
         ecoBuxFee = _ecoBuxFeeAddress;
         // Base percentage of every executed purchase, in EcoBux
@@ -388,7 +388,7 @@ contract Piloto is ERC721, Ownable, Pausable, GSNRecipient {
      */
     /* solhint-disable not-rely-on-time */
     function random() internal returns (uint256) {
-        uint256 randomNum = uint256(keccak256(abi.encodePacked(now, _msgSender(), randomNonce))) %
+        uint256 randomNum = uint256(keccak256(abi.encodePacked(block.timestamp, _msgSender(), randomNonce))) %
             100;
         randomNonce++;
         return randomNum;

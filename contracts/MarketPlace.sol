@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0
-pragma solidity ^0.6.0;
+pragma solidity ^0.7.0;
 
 // OpenZeppelin's SafeMath Implementation is used to avoid overflows
 import "@openzeppelin/contracts/math/SafeMath.sol";
@@ -30,7 +30,7 @@ contract MarketPlace {
     );
 
     // Start contract with EcoBux address and Fee address as parameters
-    constructor(address _ecoBuxAddress, address _ecoBuxFeeAddress) public {
+    constructor(address _ecoBuxAddress, address _ecoBuxFeeAddress) {
         ecoBux = IERC20(_ecoBuxAddress);
         ecoBuxFee = IERC20(_ecoBuxFeeAddress);
         // Base percentage of every executed order, in EcoBux
