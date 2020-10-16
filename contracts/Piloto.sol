@@ -304,7 +304,7 @@ contract Piloto is ERC721, Ownable, Pausable, GSNRecipient {
         uint256 nonce,
         bytes calldata approvalData,
         uint256 maxPossibleCharge
-    ) external override view returns (uint256, bytes memory) {
+    ) external view override returns (uint256, bytes memory) {
         return _approveRelayedCall();
     }
 
@@ -349,12 +349,12 @@ contract Piloto is ERC721, Ownable, Pausable, GSNRecipient {
     }
 
     // Required by GSN
-    function _msgSender() internal override(Context, GSNRecipient) view returns (address payable) {
+    function _msgSender() internal view override(Context, GSNRecipient) returns (address payable) {
         return GSNRecipient._msgSender();
     }
 
     // Required by GSN
-    function _msgData() internal override(Context, GSNRecipient) view returns (bytes memory) {
+    function _msgData() internal view override(Context, GSNRecipient) returns (bytes memory) {
         return GSNRecipient._msgData();
     }
 
@@ -388,8 +388,9 @@ contract Piloto is ERC721, Ownable, Pausable, GSNRecipient {
      */
     /* solhint-disable not-rely-on-time */
     function random() internal returns (uint256) {
-        uint256 randomNum = uint256(keccak256(abi.encodePacked(block.timestamp, _msgSender(), randomNonce))) %
-            100;
+        uint256 randomNum = uint256(
+            keccak256(abi.encodePacked(block.timestamp, _msgSender(), randomNonce))
+        ) % 100;
         randomNonce++;
         return randomNum;
     }

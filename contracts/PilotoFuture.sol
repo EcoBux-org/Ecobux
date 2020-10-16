@@ -59,7 +59,7 @@ contract PilotoFuture is ERC20, Ownable, Pausable, GSNRecipient {
         uint256 nonce,
         bytes calldata approvalData,
         uint256 maxPossibleCharge
-    ) external override view returns (uint256, bytes memory) {
+    ) external view override returns (uint256, bytes memory) {
         return _approveRelayedCall();
     }
 
@@ -95,12 +95,12 @@ contract PilotoFuture is ERC20, Ownable, Pausable, GSNRecipient {
     }
 
     // Required by GSN
-    function _msgSender() internal override(Context, GSNRecipient) view returns (address payable) {
+    function _msgSender() internal view override(Context, GSNRecipient) returns (address payable) {
         return GSNRecipient._msgSender();
     }
 
     // Required by GSN
-    function _msgData() internal override(Context, GSNRecipient) view returns (bytes memory) {
+    function _msgData() internal view override(Context, GSNRecipient) returns (bytes memory) {
         return GSNRecipient._msgData();
     }
 

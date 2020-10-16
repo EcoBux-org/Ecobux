@@ -3,7 +3,8 @@
   "rules": {
     "compiler-version": ["off"],
     "func-order": "warn",
-    "mark-callable-contracts": "off"
+    "mark-callable-contracts": "off",
+    "func-visibility": ["warn",{"ignoreConstructors":true}]
   },
   "plugins": ["prettier"]
 }
