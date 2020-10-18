@@ -9,10 +9,10 @@ module.exports = {
       gas: 8000000 // Gas limit 
     },
 
-    ropsten: {
+    gorli: {
         host: "127.0.0.1",
         port: 8546, // Use different port than dev to ensure no collisions
-        network_id: 3, // Ropsten id
+        network_id: 5, // Ropsten id
         gas: 8000000 // Gas limit
     },
 
