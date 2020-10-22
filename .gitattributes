@@ -1,1 +1,4 @@
 *.sol linguist-language=Solidity
+truffle-config.js linguist-vendored
+test-environment.config.js linguist-vendored
+migrations/1_initial_migration.js linguist-vendored
