@@ -211,7 +211,6 @@ contract Piloto is ERC721, Ownable, Pausable, GSNRecipient {
      * @param addonId Desired name of the addon mapped to an id
      * @return All microtransactions on tokenId
      */
-    /*
     function giveMicro(uint256 tokenId, uint16 addonId)
         external
         whenNotPaused
@@ -230,7 +229,6 @@ contract Piloto is ERC721, Ownable, Pausable, GSNRecipient {
 
         return ecoBlocks[tokenId].addons;
     }
-    */
 
     /** @dev Function to get a list of owned EcoBlock IDs
      * @param addr address to check owned EcoBlocks

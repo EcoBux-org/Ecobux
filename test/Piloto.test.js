@@ -218,19 +218,29 @@ describe("Piloto", function () {
 
       await expectEvent.inTransaction(tx, Piloto, "AddedAddon");
     });
-    /* Contract is too big when adding this function
     it("give Addon from admin", async function () {
-      await this.contract.giveMicro(1, 1, {from: admin});
+      // Create microaddon
+      const price = 10;
+      const buyable = true;
+      await this.contract.createMicro(price, buyable, {from: admin});
+      
+      // Give MicroAddon
+      const {tx} = await this.contract.giveMicro(0, 0, {from: admin});
+
       // Test if Mirco was purchased
       await expectEvent.inTransaction(tx, Piloto, "AddedAddon");
     });
     it("fails to give Addon if not admin", async function () {
+      // Create microaddon
+      const price = 10;
+      const buyable = true;
+      await this.contract.createMicro(price, buyable, {from: admin});
+
       await expectRevert(
-        this.contract.giveMicro(1, user, {from: user}),
+        this.contract.giveMicro(0, user, {from: user}),
         "Only the owner can run this function"
       );
     });
-    */
     it("fail to buy a microaddon if not buyable", async function () {
       // Create microaddon
       const price = 10;
