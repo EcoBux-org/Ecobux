@@ -223,7 +223,7 @@ describe("Piloto", function () {
       const price = 10;
       const buyable = true;
       await this.contract.createMicro(price, buyable, {from: admin});
-      
+
       // Give MicroAddon
       const {tx} = await this.contract.giveMicro(0, 0, {from: admin});
 
