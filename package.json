@@ -32,18 +32,19 @@
     "solidity-coverage": "^0.7.5"
   },
   "scripts": {
-    "compile": "npx oz compile",
+    "compile": "oz compile",
     "migrate": "npx truffle migrate",
     "gas": "npx ganache-cli --gasLimit 8000000 2> /dev/null 1> /dev/null &",
     "deploy": "npm run gas && npm run migrate",
     "test": "npm run compile && npx mocha test --exit --no-timeout -p -s 500 && npm run lint",
     "coverage": "npx truffle run coverage",
-    "lint": "npx npm-run-all -p lint:*",
-    "lint:solidity": "npx solhint \"contracts/**/*.sol\"",
-    "lint:javascript": "npx eslint test/ migrations/",
-    "prettier": "npx npm-run-all -p prettier:*",
-    "prettier:solidity": "npx prettier --write \"contracts/**/*.sol\"",
-    "prettier:javascript": "npx prettier --write \"test/\" \"migrations\""
+    "lint": "npm-run-all -p lint:*",
+    "lint:solidity": "solhint \"contracts/**/*.sol\"",
+    "lint:javascript": "eslint test/ migrations/",
+    "prettier-check": "prettier --check contracts/ test migrations/",
+    "prettier": "npm-run-all -p prettier:*",
+    "prettier:solidity": "prettier --write \"contracts/**/*.sol\"",
+    "prettier:javascript": "prettier --write \"test/\" \"migrations\""
   },
   "repository": {
     "type": "git",
@@ -60,7 +61,7 @@
   "homepage": "https://ecobux.org",
   "husky": {
     "hooks": {
-      "pre-push": "npm run test",
+      "pre-push": "npm run test && npm run prettier-check",
       "pre-commit": "npm run prettier && npm run lint"
     }
   }
