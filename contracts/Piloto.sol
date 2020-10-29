@@ -377,7 +377,7 @@ contract Piloto is ERC721, Ownable, Pausable, GSNRecipient {
         return true;
     }
 
-    /** @dev Function to create radnom numbers
+    /** @dev Function to create random numbers
      * @dev True random numbers are not possible in eth, these numbers are predictable
      * @dev psuedoRandomness is okay here because it only determines block id
      * @dev cost to get an unpredictable number with oracles would be illogical and take away money from charity
@@ -393,7 +393,10 @@ contract Piloto is ERC721, Ownable, Pausable, GSNRecipient {
     }
 
     /* solhint-enable not-rely-on-time */
-
+    /** @dev Helper functions to create a single ecoblock
+     * @param _EcoBlock A 2 dimensional array of geopoints
+     * Has to be 5 points as only one dimension of an array can be dynamic
+     */
     function _createEcoBlock(uint16[2][5] memory _EcoBlock) internal {
         // Need to initialize empty array to be used in EcoBlock struct
         uint16[] memory addons;
