@@ -40,6 +40,18 @@ contract EcoBux is ERC20, Ownable, GSNRecipient {
         return _approveRelayedCall();
     }
 
+    /**
+     * @dev Function to mint tokens to users
+     * @param _to The address that will receive the minted tokens.
+     * @param _amount The amount of tokens to mint.
+     * @return A boolean that indicates if the operation was successful.
+     */
+    function createEco(address _to, uint256 _amount) public hasMintPermission returns (bool) {
+        super._mint(_to, _amount);
+        emit Mint(_to, _amount); // Calls mint event
+        return true;
+    }
+
     // Relay Requires this func even if unused
     // GSN Func
     // TODO: Add stuff here
@@ -63,17 +75,5 @@ contract EcoBux is ERC20, Ownable, GSNRecipient {
 
     function _msgData() internal override(Context, GSNRecipient) view returns (bytes memory) {
         return GSNRecipient._msgData();
-    }
-
-    /**
-     * @dev Function to mint tokens to users
-     * @param _to The address that will receive the minted tokens.
-     * @param _amount The amount of tokens to mint.
-     * @return A boolean that indicates if the operation was successful.
-     */
-    function createEco(address _to, uint256 _amount) public hasMintPermission returns (bool) {
-        super._mint(_to, _amount);
-        emit Mint(_to, _amount); // Calls mint event
-        return true;
     }
 }
