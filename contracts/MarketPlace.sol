@@ -79,7 +79,10 @@ contract MarketPlace {
     // Mapping of all active trades
     mapping(address => mapping(uint256 => Order)) public orderByAssetId;
 
-    /** @dev Create order
+    /** @notice Create order
+     * @param subTokenAddress address of the ERC721 Subtoken contract
+     * @param assetId ID of the asset to list from subtoken
+     * @param ecoPrice cost of the order, including fees
      */
     function createOrder(
         address subTokenAddress,
@@ -113,7 +116,9 @@ contract MarketPlace {
         emit OrderCreated(orderId, assetId, assetOwner, subTokenAddress, ecoPrice);
     }
 
-    /** @dev Cancel existing order
+    /** @notice Cancel existing order
+     * @param subTokenAddress address of the ERC721 Subtoken contract
+     * @param assetId ID of asset to cancel from subtoken
      */
     function cancelOrder(address subTokenAddress, uint256 assetId) external {
         Order memory order = orderByAssetId[subTokenAddress][assetId];
@@ -129,7 +134,10 @@ contract MarketPlace {
         emit OrderCancelled(orderId, assetId, orderSeller, orderTokenAddress);
     }
 
-    /** @dev Execute sale of order
+    /** @notice Execute sale of order
+     * @param subTokenAddress address of the ERC721 Subtoken contract
+     * @param assetId ID of asset to cancel from subtoken
+     * @param price total price of the order, including fees
      */
     function executeOrder(
         address subTokenAddress,
@@ -182,6 +190,9 @@ contract MarketPlace {
         emit OrderSuccessful(orderId, assetId, seller, subTokenAddress, price, msg.sender);
     }
 
+    /** @notice Errors if input is not an ERC721 contract
+     * @param subTokenAddress address to verify
+     */
     function _requireERC721(address subTokenAddress) internal view {
         require(isContract(subTokenAddress), "Address must be a contract");
 
@@ -192,13 +203,18 @@ contract MarketPlace {
         );
     }
 
-    /** @dev Function to verifie user has enough EcoBux to spend
+    /** @notice Function to verify user has enough EcoBux to spend
+     * @param user user address to check allowance
+     * @return uint256 allowance of user
      */
     function _availableECO(address user) internal view returns (uint256) {
         return ecoBux.allowance(user, address(this));
     }
 
-    /** @dev Function to take EcoBux from user and transfer to contract
+    /** @notice Function to take EcoBux from user and transfer to contract
+     * @param _from address to take ecobux from
+     * @param _to address to give EcoBux to
+     * @param _amount how much ecobux (in atomic units) to take
      */
     function _takeEco(
         address _from,
@@ -211,7 +227,8 @@ contract MarketPlace {
         return true;
     }
 
-    /** @dev Function determine if input is contract
+    /** @notice Function determine if input is contract
+     * @param _addr Address to check
      * @return bool if input is a contract
      */
     function isContract(address _addr) internal view returns (bool) {

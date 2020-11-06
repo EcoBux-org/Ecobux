@@ -73,7 +73,7 @@ contract Piloto is ERC721, Ownable, Pausable, GSNRecipient {
         fee = 2; // 2%
     }
 
-    /** @dev Function to group create EcoBlocks
+    /** @notice Function to group create EcoBlocks
      * @param _ecoBlocks an array of arrays of points for creating each EcoBlock bounds
      * Each lat lng point converts to having six decimal points, about 4 inches of precision.
      * They are stored compressed in uint16 to save space
@@ -93,7 +93,7 @@ contract Piloto is ERC721, Ownable, Pausable, GSNRecipient {
         return true;
     }
 
-    /** @dev Function to buy EcoBlocks
+    /** @notice Function to buy EcoBlocks
      * @param _tokensDesired number of EcoBlocks to buy from contract
      * @param _to address to send bought EcoBlocks
      */
@@ -139,7 +139,7 @@ contract Piloto is ERC721, Ownable, Pausable, GSNRecipient {
         }
     }
 
-    /** @dev Admin Function to give EcoBlocks, gets around GSN not working
+    /** @notice Admin Function to give EcoBlocks, gets around GSN not working
      * @param _tokensDesired number of EcoBlocks to buy from contract
      * @param _to address to send bought EcoBlocks
      */
@@ -163,7 +163,7 @@ contract Piloto is ERC721, Ownable, Pausable, GSNRecipient {
         }
     }
 
-    /** @dev Function to create a new type of microaddon
+    /** @notice Function to create a new type of microaddon
      * @param _price uint of the cost (in ecobux) of the new microaddon
      * @param _buyable bool determining if the new microaddon can be bought by users
      * @return The new addon's ID
@@ -176,7 +176,7 @@ contract Piloto is ERC721, Ownable, Pausable, GSNRecipient {
         return newAddonId;
     }
 
-    /** @dev Function to add virtual addons to an EcoBlock
+    /** @notice Function to add virtual addons to an EcoBlock
      * @param tokenId id of the token to add the microtransactions to
      * @param addonId Desired name of the addon mapped to an id
      * @return All microtransactions on tokenId
@@ -206,7 +206,7 @@ contract Piloto is ERC721, Ownable, Pausable, GSNRecipient {
         return ecoBlocks[tokenId].addons;
     }
 
-    /** @dev Function to give virtual addons to an EcoBlock
+    /** @notice Function to give virtual addons to an EcoBlock
      * @param tokenId id of the token to add the microtransactions to
      * @param addonId Desired name of the addon mapped to an id
      * @return All microtransactions on tokenId
@@ -230,7 +230,7 @@ contract Piloto is ERC721, Ownable, Pausable, GSNRecipient {
         return ecoBlocks[tokenId].addons;
     }
 
-    /** @dev Function to get a list of owned EcoBlock IDs
+    /** @notice Function to get a list of owned EcoBlock IDs
      * @param addr address to check owned EcoBlocks
      * @return A uint array which contains IDs of all owned EcoBlocks
      */
@@ -257,7 +257,7 @@ contract Piloto is ERC721, Ownable, Pausable, GSNRecipient {
         return result;
     }
 
-    /** @dev Function to retrieve a specific EcoBlock's details.
+    /** @notice Function to retrieve a specific EcoBlock's details.
      * @param id ID of the EcoBlock who's details will be retrieved
      * @return Array id and geopoints of an EcoBlock with all addons.
      */
@@ -273,7 +273,7 @@ contract Piloto is ERC721, Ownable, Pausable, GSNRecipient {
         return (id, ecoBlocks[id].geoMap, ecoBlocks[id].addons);
     }
 
-    /** @dev Function to retrieve a specific EcoBlock's details.
+    /** @notice Function to retrieve a specific EcoBlock's details.
      * @param id ID of the EcoBlock who's details will be retrieved
      * @return Array id and geopoints of an EcoBlock with all addons.
      */
@@ -306,21 +306,21 @@ contract Piloto is ERC721, Ownable, Pausable, GSNRecipient {
         return _approveRelayedCall();
     }
 
-    /** @dev Function to update _currentPrice
+    /** @notice Function to update _currentPrice
      * @param _currentPrice new price of each EcoBlock
      */
     function setCurrentPrice(uint256 _currentPrice) public onlyOwner {
         currentPrice = _currentPrice;
     }
 
-    /** @dev Function to update _currentPrice
+    /** @notice Function to update _currentPrice
      * @param _fee new percentage fee to take from each EcoBlock
      */
     function setCurrentFee(uint256 _fee) public onlyOwner {
         fee = _fee;
     }
 
-    /** @dev Function to update _ecoBuxAddress
+    /** @notice Function to update _ecoBuxAddress
      * @param _ecoBuxAddress new address of the EcoBux contract
      */
     function setEcoBuxAddress(address _ecoBuxAddress) public onlyOwner {
@@ -356,15 +356,17 @@ contract Piloto is ERC721, Ownable, Pausable, GSNRecipient {
         return GSNRecipient._msgData();
     }
 
-    /** @dev Function to verify user has enough ecobux to spend
+    /** @notice Function to verify user has enough ecobux to spend
      * @param user address of user to verify
+     * @return uint256 allowance of user
      */
     function availableECO(address user) internal view returns (uint256) {
         return ecoBuxAddress.allowance(user, address(this));
     }
 
-    /** @dev Function to take ecobux from user and transfer to this contract
+    /** @notice Function to take ecobux from user and transfer to this contract
      * @param _from address to take ecobux from
+     * @param _to address to give EcoBux to
      * @param _amount how much ecobux (in atomic units) to take
      */
     function takeEco(
@@ -377,7 +379,7 @@ contract Piloto is ERC721, Ownable, Pausable, GSNRecipient {
         return true;
     }
 
-    /** @dev Function to create random numbers
+    /** @notice Function to create random numbers
      * @dev True random numbers are not possible in eth, these numbers are predictable
      * @dev psuedoRandomness is okay here because it only determines block id
      * @dev cost to get an unpredictable number with oracles would be illogical and take away money from charity
@@ -393,7 +395,7 @@ contract Piloto is ERC721, Ownable, Pausable, GSNRecipient {
     }
 
     /* solhint-enable not-rely-on-time */
-    /** @dev Helper functions to create a single ecoblock
+    /** @notice Helper functions to create a single ecoblock
      * @param _EcoBlock A 2 dimensional array of geopoints
      * Has to be 5 points as only one dimension of an array can be dynamic
      */

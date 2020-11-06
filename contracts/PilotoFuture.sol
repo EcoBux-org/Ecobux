@@ -29,10 +29,10 @@ contract PilotoFuture is ERC20, Ownable, Pausable, GSNRecipient {
         currentPrice = 1500; // Default to 15 ECOB per FUTURE. Changed by setCurrentPrice()
     }
 
-    /** @dev Function to interface with creating and dispensing Future
+    /** @notice Function to interface with creating and dispensing Future
      * @param _amount Number of Future desired
      */
-    function buyFuture(uint256 _amount) external whenNotPaused returns (uint256) {
+    function buyFuture(uint256 _amount) external whenNotPaused {
         // Require at least current price * tokens
         require(availableECO(_msgSender()) >= _amount * currentPrice, "Not Enough EcoBux");
 
@@ -63,15 +63,17 @@ contract PilotoFuture is ERC20, Ownable, Pausable, GSNRecipient {
         return _approveRelayedCall();
     }
 
-    /** @dev Function to update _currentPrice
+    /** @notice Function to update _currentPrice
      * @dev Throws if _currentPrice is zero
+     * @param _currentPrice New price of a future
      */
     function setCurrentPrice(uint256 _currentPrice) public onlyOwner {
         currentPrice = _currentPrice;
     }
 
-    /** @dev Function to update ecoBuxAddress
+    /** @notice Function to update ecoBuxAddress
      * @dev Throws if _ecoBuxAddress is not a contract address
+     * @param _ecoBuxAddress New address of Ecobux contract
      */
     function setEcoBuxAddress(address _ecoBuxAddress) public onlyOwner {
         ecoBuxAddress = ERC20(_ecoBuxAddress);
@@ -104,7 +106,7 @@ contract PilotoFuture is ERC20, Ownable, Pausable, GSNRecipient {
         return GSNRecipient._msgData();
     }
 
-    /** @dev Function to take ecobux from user and transfer to this contract
+    /** @notice Function to take ecobux from user and transfer to this contract
      * @param _from address to take ecobux from
      * @param _amount how much ecobux (in atomic units) to take
      */
@@ -114,8 +116,9 @@ contract PilotoFuture is ERC20, Ownable, Pausable, GSNRecipient {
         emit EcoTransfer(_from, _amount);
     }
 
-    /** @dev Function to verify user has enough ecobux to spend
+    /** @notice Function to verify user has enough ecobux to spend
      * @param user address of user to verify
+     * @return uint256 allowance of user
      */
     function availableECO(address user) internal view returns (uint256) {
         return ecoBuxAddress.allowance(user, address(this));

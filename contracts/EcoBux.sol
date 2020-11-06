@@ -40,11 +40,10 @@ contract EcoBux is ERC20, Ownable, GSNRecipient {
         return _approveRelayedCall();
     }
 
-    /**
-     * @dev Function to mint tokens to users
+    /** @notice Function to mint tokens to users
      * @param _to The address that will receive the minted tokens.
      * @param _amount The amount of tokens to mint.
-     * @return A boolean that indicates if the operation was successful.
+     * @return boolean indicating if the operation was successful.
      */
     function createEco(address _to, uint256 _amount) public hasMintPermission returns (bool) {
         super._mint(_to, _amount);
