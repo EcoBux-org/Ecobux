@@ -16,8 +16,6 @@ const ecoPrice = 1500; // 15.00 Per ecoBlock
 
 // Start test block
 describe("Piloto", function () {
-  // Some tests take a while to setup, increase timeout to allow the tests to complete
-  this.timeout(150000);
   beforeEach(async function () {
     // Deploy a new Piloto and EcoBux contract for each test
     EcoBuxInstance = await EcoBux.new({from: admin});

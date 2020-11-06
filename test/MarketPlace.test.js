@@ -35,7 +35,6 @@ async function buyEco(amount) {
 
 // Start test block
 describe("MarketPlace", function () {
-  this.timeout(15000);
   beforeEach(async function () {
     EcoBuxInstance = await EcoBux.new({from: admin});
     EcoBuxFeeInstance = await EcoBuxFee.new({from: admin});
