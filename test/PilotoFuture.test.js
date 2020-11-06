@@ -1,8 +1,5 @@
 const {accounts, contract, web3} = require("@openzeppelin/test-environment");
-const {
-  // expectEvent,
-  expectRevert,
-} = require("@openzeppelin/test-helpers");
+const {expectRevert} = require("@openzeppelin/test-helpers");
 const gsn = require("@openzeppelin/gsn-helpers");
 const {expect} = require("chai");
 
