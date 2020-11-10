@@ -60,7 +60,9 @@ describe("PilotoFuture", function () {
       await this.contract.buyFuture(futuresBought, {from: user, useGSN: true});
 
       // Check if tokens were successfully minted
-      await expect((await this.contract.balanceOf(user)).toString()).to.equal(futuresBought.toString());
+      await expect((await this.contract.balanceOf(user)).toString()).to.equal(
+        futuresBought.toString()
+      );
       // Check if ecobux was taken from account
       await expect((await EcoBuxInstance.balanceOf(user)).toString()).to.equal(
         (ecoMint - futuresBought * futurePrice).toString()
@@ -75,7 +77,9 @@ describe("PilotoFuture", function () {
       await this.contract.giveFuture(futuresBought, user, {from: admin});
 
       // Test if EcoBlock was purchased
-      await expect((await this.contract.balanceOf(user)).toString()).to.equal(futuresBought.toString());
+      await expect((await this.contract.balanceOf(user)).toString()).to.equal(
+        futuresBought.toString()
+      );
     });
     it("fail to give Futures if not admin", async function () {
       await expectRevert(
