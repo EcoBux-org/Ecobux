@@ -60,9 +60,9 @@ describe("PilotoFuture", function () {
       await this.contract.buyFuture(futuresBought, {from: user, useGSN: true});
 
       // Check if tokens were successfully minted
-      expect((await this.contract.balanceOf(user)).toString()).to.equal(futuresBought.toString());
+      await expect((await this.contract.balanceOf(user)).toString()).to.equal(futuresBought.toString());
       // Check if ecobux was taken from account
-      expect((await EcoBuxInstance.balanceOf(user)).toString()).to.equal(
+      await expect((await EcoBuxInstance.balanceOf(user)).toString()).to.equal(
         (ecoMint - futuresBought * futurePrice).toString()
       );
 
@@ -70,7 +70,20 @@ describe("PilotoFuture", function () {
       // Note that we need to use strings to compare the 256 bit integers
       await expect((await web3.eth.getBalance(user)).toString()).to.equal(startEth);
     });
-    it("should fail to mint when not enough ecobux", async function () {
+    it("give futures from admin", async function () {
+      const futuresBought = 10;
+      await this.contract.giveFuture(futuresBought, user, {from: admin});
+
+      // Test if EcoBlock was purchased
+      await expect((await this.contract.balanceOf(user)).toString()).to.equal(futuresBought.toString());
+    });
+    it("fail to give Futures if not admin", async function () {
+      await expectRevert(
+        this.contract.giveFuture(1, user, {from: user}),
+        "Only the owner can run this function"
+      );
+    });
+    it("fail to mint when not enough ecobux", async function () {
       // Mint tokens
       await expectRevert(this.contract.buyFuture(1000, {from: accounts[1]}), "Not Enough EcoBux");
     });

@@ -46,6 +46,17 @@ contract PilotoFuture is ERC20, Ownable, Pausable, GSNRecipient {
         emit Transfer(address(0), _msgSender(), _amount);
     }
 
+    /** @notice Function to interface with creating and dispensing Future
+     * @param _amount Number of Future desired
+     */
+    function giveFuture(uint256 _amount, address _to) external whenNotPaused onlyOwner {
+        // Mint tokens and sends them to the original sender
+        super._mint(_to, _amount);
+
+        // Emit Transfer after Future is transferred
+        emit Transfer(address(0), _msgSender(), _amount);
+    }
+
     // Relay Functions to allow users to avoid needing a wallet
     // Required by GSN
     // TODO: LIMIT USE OF THIS; ANY USER CAN DRAIN
