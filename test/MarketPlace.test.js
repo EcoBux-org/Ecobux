@@ -54,7 +54,7 @@ describe("MarketPlace", function () {
     EcoBlocks = require("./utils/EcoBlocks.json");
     EcoBlocks = EcoBlocks.slice(0, 1);
 
-    const {tx} = await PilotoInstance.bulkCreateEcoBlocks(EcoBlocks, {
+    const {tx} = await PilotoInstance.bulkCreateEcoBlocks(EcoBlocks.length, {
       from: admin,
       useGSN: false,
     });

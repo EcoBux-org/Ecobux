@@ -44,7 +44,10 @@ describe("Piloto", function () {
       EcoBlocks = require("./utils/EcoBlocks.json");
       EcoBlocks = EcoBlocks.slice(0, 5);
 
-      const {tx} = await this.contract.bulkCreateEcoBlocks(EcoBlocks, {from: admin, useGSN: false});
+      const {tx} = await this.contract.bulkCreateEcoBlocks(EcoBlocks.length, {
+        from: admin,
+        useGSN: false,
+      });
       await expectEvent.inTransaction(tx, Piloto, "Transfer", {
         from: ZERO_ADDRESS,
         to: this.contract.address,
@@ -53,25 +56,24 @@ describe("Piloto", function () {
     // TODO: test total number of EcoBlocks
     // Not an issue if not implemented, as long as 17 ecoBlocks can be made
     // Error right now is timeout, takes too long and then interrupts other tests
-    /*
-    it('create all EcoBlocks', async function() {
-      const EcoBlocks = require('./utils/EcoBlocks.json');
-      for (i = 17; i< EcoBlocks.length; i+=17) {
-        const {tx} = await this.contract.bulkCreateEcoBlocks(
-            EcoBlocks.slice(i, i+17),
-            {from: admin, useGSN: false},
-        );
-        expectEvent.inTransaction(
-            tx, Piloto, 'Transfer',
-            {from: ZERO_ADDRESS, to: this.contract.address},
-        );
+    it("create all EcoBlocks", async function () {
+      const EcoBlocks = require("./utils/EcoBlocks.json");
+      const index = 50;
+      for (i = index; i < EcoBlocks.length; i += index) {
+        const {tx} = await this.contract.bulkCreateEcoBlocks(EcoBlocks.slice(i, i + index).length, {
+          from: admin,
+          useGSN: false,
+        });
+        expectEvent.inTransaction(tx, Piloto, "Transfer", {
+          from: ZERO_ADDRESS,
+          to: this.contract.address,
+        });
       }
     });
-    */
 
     it("fails to create EcoBlocks if not owner", async function () {
       await expectRevert(
-        this.contract.bulkCreateEcoBlocks(EcoBlocks, {from: user}),
+        this.contract.bulkCreateEcoBlocks(EcoBlocks.length, {from: user}),
         "Only the owner can run this function"
       );
     });
@@ -161,9 +163,9 @@ describe("Piloto", function () {
       // Check if ID matches
       await expect(ecoBlockDetails[0].toString()).to.equal(ownedEcoBlock.toString());
       // Check if geoMap points match
-      await expect(ecoBlockDetails[1].toString()).to.equal(EcoBlocks[ownedEcoBlock].toString());
+      // await expect(ecoBlockDetails[1].toString()).to.equal(EcoBlocks[ownedEcoBlock].toString());
       // Check if addons match (should be empty array)
-      await expect(ecoBlockDetails[2].toString()).to.equal("");
+      await expect(ecoBlockDetails[1].toString()).to.equal("");
     });
   });
   context("Microaddons Functions", function () {
@@ -175,7 +177,10 @@ describe("Piloto", function () {
       EcoBlocks = require("./utils/EcoBlocks.json");
       EcoBlocks = EcoBlocks.slice(0, 1);
 
-      const {tx} = await this.contract.bulkCreateEcoBlocks(EcoBlocks, {from: admin, useGSN: false});
+      const {tx} = await this.contract.bulkCreateEcoBlocks(EcoBlocks.length, {
+        from: admin,
+        useGSN: false,
+      });
       await expectEvent.inTransaction(tx, Piloto, "Transfer", {
         from: ZERO_ADDRESS,
         to: this.contract.address,

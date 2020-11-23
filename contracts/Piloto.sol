@@ -24,7 +24,7 @@ contract Piloto is ERC721, Ownable, Pausable, GSNRecipient {
         // Points use a linear transform to fit into uint16 values with neglible
         // loss in data, see the EcoBux GitHub page for info on converting these
         // values
-        uint16[2][5] geoMap;
+        // uint16[2][5] geoMap;
         // Array of microaddons for each EcoBlock
         // uint16 gives max 65535 possible unique microaddons
         uint16[] addons;
@@ -74,21 +74,19 @@ contract Piloto is ERC721, Ownable, Pausable, GSNRecipient {
     }
 
     /** @notice Function to group create EcoBlocks
-     * @param _ecoBlocks an array of arrays of points for creating each EcoBlock bounds
+     * @ param _ecoBlocks an array of arrays of points for creating each EcoBlock bounds
      * Each lat lng point converts to having six decimal points, about 4 inches of precision.
      * They are stored compressed in uint16 to save space
      * And solidity does not handle fixed points well
      * (precision is not accuracy, note https://gis.stackexchange.com/a/8674 )
      * @return success bool if the EcoBlock generation was successful
      */
-    function bulkCreateEcoBlocks(uint16[2][5][] calldata _ecoBlocks)
-        external
-        onlyOwner
-        returns (bool success)
-    {
+    function bulkCreateEcoBlocks(
+        uint16 _ecoBlocks /*uint16[2][5][] calldata _ecoBlocks*/
+    ) external onlyOwner returns (bool success) {
         // For each EcoBlock in initial array
-        for (uint256 i = 0; i < _ecoBlocks.length; i++) {
-            _createEcoBlock(_ecoBlocks[i]);
+        for (uint256 i = 0; i < _ecoBlocks; i++) {
+            _createEcoBlock(); //_ecoBlocks[i]);
         }
         return true;
     }
@@ -266,11 +264,11 @@ contract Piloto is ERC721, Ownable, Pausable, GSNRecipient {
         view
         returns (
             uint256,
-            uint16[2][5] memory,
+            //uint16[2][5] memory,
             uint16[] memory
         )
     {
-        return (id, ecoBlocks[id].geoMap, ecoBlocks[id].addons);
+        return (id, ecoBlocks[id].addons);
     }
 
     /** @notice Function to retrieve a specific EcoBlock's details.
@@ -396,14 +394,15 @@ contract Piloto is ERC721, Ownable, Pausable, GSNRecipient {
 
     /* solhint-enable not-rely-on-time */
     /** @notice Helper functions to create a single ecoblock
-     * @param _EcoBlock A 2 dimensional array of geopoints
+     * @ param _EcoBlock A 2 dimensional array of geopoints
      * Has to be 5 points as only one dimension of an array can be dynamic
      */
-    function _createEcoBlock(uint16[2][5] memory _EcoBlock) internal {
+    function _createEcoBlock() internal /*uint16[2][5] memory _EcoBlock*/
+    {
         // Need to initialize empty array to be used in EcoBlock struct
         uint16[] memory addons;
         // Create new struct containing geopoints and an empty array of addons
-        EcoBlock memory newEcoBlock = EcoBlock({geoMap: _EcoBlock, addons: addons});
+        EcoBlock memory newEcoBlock = EcoBlock({addons: addons}); /*geoMap: _EcoBlock,*/
         // Set the new EcoBlock's id
         ecoBlocks.push(newEcoBlock);
         uint256 newEcoBlockId = ecoBlocks.length - 1;
