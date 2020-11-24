@@ -1,6 +1,6 @@
 {
   "name": "ecobux",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "description": "EcoBux: Take conservation into your own hands with the power of cryptocurrency",
   "main": "contracts/Ecobux.sol",
   "directories": {
