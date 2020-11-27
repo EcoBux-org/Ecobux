@@ -1,7 +1,8 @@
 const HDWalletProvider = require("@truffle/hdwallet-provider");
 require('dotenv').config();
 
-secretKey = process.env.ETHSECRET;
+SECRETKEY = process.env.ETHSECRET;
+INFURAKEY = process.env.INFURAKEY;
 
 module.exports = {
   // plugins: ["solidity-coverage"],
@@ -23,7 +24,7 @@ module.exports = {
 
     infuragorli: {
       provider: function() {
-        return new HDWalletProvider(secretKey, "https://goerli.infura.io/v3/be1164b674ef4e05bc0f9c998e8add9d")
+        return new HDWalletProvider(SECRETKEY, "https://goerli.infura.io/v3/"+INFURAKEY)
       },
       network_id: 5,
       gas: 8000000 // Gas limit
@@ -31,7 +32,7 @@ module.exports = {
 
     infuramain: {
       provider: function() {
-        return new HDWalletProvider(secretKey, "https://mainnet.goerli.infura.io/v3/be1164b674ef4e05bc0f9c998e8add9d")
+        return new HDWalletProvider(SECRETKEY, "https://mainnet.infura.io/v3/"+INFURAKEY)
       },
       network_id: 1,
       gas: 8000000 // Gas limit
