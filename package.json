@@ -12,7 +12,7 @@
   },
   "devDependencies": {
     "@openzeppelin/cli": "^2.8.2",
-    "@openzeppelin/contracts": "^3.0.1",
+    "@openzeppelin/contracts": "^4.4.2",
     "@openzeppelin/contracts-ethereum-package": "^2.5.0",
     "@openzeppelin/gsn-helpers": "^0.2.3",
     "@openzeppelin/gsn-provider": "^0.1.10",
